@@ -1,0 +1,247 @@
+.container {
+  padding: 24px 16px 96px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 4px 20px;
+}
+
+.header__date {
+  color: #90a1b9;
+  font-size: 15px;
+  line-height: 16px;
+  letter-spacing: -0.7px;
+}
+
+.header__title {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 28px;
+  letter-spacing: -0.7px;
+}
+
+.mainCard {
+  width: 100%;
+  padding: 20px;
+  background: #fff;
+  border-radius: 16px;
+  border: 0.791px solid #cad5e2;
+  margin-bottom: 32px;
+}
+
+.mainCard__hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.mainCard__status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mainCard__statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #90a1b9;
+}
+
+.mainCard__statusText {
+  color: #62748e;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 20px;
+  letter-spacing: -0.7px;
+}
+
+.mainCard__message {
+  display: flex;
+  flex-direction: column;
+}
+
+.mainCard__title {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 24.75px;
+  letter-spacing: -0.7px;
+}
+
+.mainCard__description {
+  color: #62748e;
+  font-size: 13px;
+  line-height: 19.5px;
+  letter-spacing: -0.7px;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.mainCard__weatherIcon {
+  flex: 0 0 auto;
+}
+
+.mainCard__weatherIcon img {
+  display: block;
+  width: 88px;
+  height: 88px;
+}
+
+.mainCard__summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.mainCard__summaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+}
+
+.mainCard__summaryLabel {
+  color: #90a1b9;
+  font-size: 14px;
+  line-height: 16px;
+  letter-spacing: -0.7px;
+}
+
+.mainCard__summaryValue {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 20px;
+  letter-spacing: -0.7px;
+}
+
+.mainCard__summaryValue--available {
+  color: #62748e;
+}
+
+.mainCard__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.mainCard__scheduledExpense {
+  color: #90a1b9;
+  font-size: 13px;
+  line-height: 16px;
+  letter-spacing: -0.7px;
+}
+
+.mainCard__detailBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: none;
+  color: #90a1b9;
+  font-size: 13px;
+  line-height: 16px;
+  letter-spacing: -0.7px;
+  cursor: pointer;
+}
+
+.expenseContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.expenseContainer__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.expenseContainer__title {
+  color: #314158;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+  letter-spacing: -0.7px;
+}
+
+.expenseContainer__viewAll {
+  border: none;
+  background: none;
+  color: #155dfc;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.7px;
+  cursor: pointer;
+}
+
+.expenseContainer__list {
+  width: 100%;
+  border-radius: 16px;
+  background: #ffffff;
+  overflow: hidden;
+  margin-bottom: 32px;
+}
+
+.expenseItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.expenseItem:last-child {
+  border-bottom: none;
+}
+
+.expenseItem__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.expenseItem__name {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.7px;
+}
+
+.expenseItem__date {
+  color: #90a1b9;
+  font-size: 13px;
+  line-height: 16px;
+  letter-spacing: -0.7px;
+}
+
+.expenseItem__amount {
+  color: #fb2c36;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 20px;
+  letter-spacing: -0.7px;
+}
+
+.chatBtn {
+  border: none;
+  display: flex;
+  width: 100%;
+  padding: 14px 0;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 12px;
+  background: #155dfc;
+  color: #fff;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+  letter-spacing: -0.7px;
+  cursor: pointer;
+}

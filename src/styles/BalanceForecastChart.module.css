@@ -1,0 +1,96 @@
+.chart {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.gridLine {
+  stroke: #eaf0f8;
+  stroke-width: 1;
+  stroke-dasharray: 4 6;
+}
+
+.thresholdLine {
+  stroke: #ffb900;
+  stroke-width: 2;
+  stroke-dasharray: 5 5;
+}
+
+.area {
+  fill: url("#balanceAreaGradient");
+}
+
+.balanceLine {
+  fill: none;
+  stroke: #3b82f6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3.5;
+}
+
+.point {
+  fill: #74a8ff;
+  opacity: 0.82;
+}
+
+.pointGroup {
+  cursor: pointer;
+  outline: none;
+}
+
+.pointGroup:hover .point,
+.pointGroup:focus .point {
+  fill: #3b82f6;
+  opacity: 1;
+}
+
+.pointHitArea {
+  fill: transparent;
+}
+
+.tooltip {
+  pointer-events: none;
+}
+
+.tooltipBox {
+  fill: #74a8ff;
+  opacity: 0.92;
+}
+
+.tooltipDate,
+.tooltipValue {
+  fill: #fff;
+  text-anchor: middle;
+  letter-spacing: -0.7px;
+}
+
+.tooltipDate {
+  font-size: 11px;
+  opacity: 0.72;
+}
+
+.tooltipValue {
+  font-size: 12px;
+  font-weight: 700;
+} 
+
+.yLabel,
+.xLabel {
+  fill: #90a1b9;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: -0.7px;
+}
+
+.yLabel {
+  text-anchor: end;
+}
+
+.xLabel {
+  text-anchor: middle;
+}
