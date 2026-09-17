@@ -1,0 +1,44 @@
+/*
+ * 맥·윈도우에서 같은 글씨로 보이게 하는 설정.
+ * 한글 담당으로 Pretendard 를 붙여서 두 OS 가 같은 폰트를 쓰게 한다.
+ * @import 규칙은 다른 규칙보다 먼저 와야 하므로 맨 위에 둔다.
+ */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css");
+@import "tailwindcss";
+
+/*
+ * 돈의 날씨 디자인 토큰.
+ * 색상은 여기서만 정의하고, 화면에서는 bg-brand / text-danger 처럼 토큰으로 사용한다.
+ * 색을 바꿀 때는 이 파일만 수정하면 전체에 반영된다.
+ */
+@theme {
+  /* 폰트: 앱 전체 Pretendard 로 통일 (font-sans 도 이 값을 따른다) */
+  --font-sans: "Pretendard Variable", "Pretendard", sans-serif;
+
+  --color-brand: #2f6bff; /* 포인트 파랑 (활성 탭, 강조) */
+  --color-brand-soft: #eaf0ff; /* 파랑 배경 (아이콘 뱃지 등) */
+  --color-danger: #fb2c36; /* 지출/마이너스 금액 */
+  --color-ink: #1d2b44; /* 기본 텍스트 */
+  --color-muted: #9aa9c0; /* 보조 텍스트, 비활성 */
+  --color-surface: #ffffff; /* 카드 배경 */
+  --color-canvas: #f8fafc; /* 앱 배경 */
+  --color-hairline: #eef1f5; /* 구분선 */
+}
+
+:root {
+  font-family: "Pretendard Variable", "Pretendard", sans-serif;
+  /* 시안 전역 자간. 대부분의 텍스트가 -0.7px 을 쓴다. */
+  letter-spacing: -0.7px;
+}
+
+/*
+ * 스크롤은 되지만 스크롤바는 보이지 않게 하는 유틸.
+ * 하단 네비게이션과 겹치는 스크롤바를 숨기는 데 사용한다.
+ */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE, Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
