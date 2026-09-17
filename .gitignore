@@ -27,3 +27,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# 백엔드 명세 등 개인 참고 문서 (레포에 올리지 않음)
+docs/
