@@ -175,22 +175,22 @@ function Schedule() {
                   return (
                     <div
                       key={item.id}
-                      className={`flex items-center justify-between py-[16px] ${
+                      className={`flex items-center justify-between gap-[12px] py-[16px] ${
                         index !== selectedItems.length - 1 ? 'border-b border-hairline' : ''
                       }`}
                     >
-                      <div className="flex items-center gap-[12px]">
+                      <div className="flex min-w-0 items-center gap-[12px]">
                         <div
-                          className={`flex h-[36px] w-[36px] items-center justify-center rounded-full ${
+                          className={`flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full ${
                             isIncome ? 'bg-[#ECFDF5] text-[#00BC7D]' : 'bg-[#FEF2F2] text-[#FB2C36]'
                           }`}
                         >
                           {isIncome ? <IncomeArrowDown size={16} /> : <ExpenseArrowUp size={16} />}
                         </div>
-                        <p className="text-[14px] font-medium leading-[20px] tracking-[-0.7px] text-[#1D293D]">{item.title}</p>
+                        <p className="truncate text-[14px] font-medium leading-[20px] tracking-[-0.7px] text-[#1D293D]">{item.title}</p>
                       </div>
                       <p
-                        className={`text-[14px] font-bold leading-[20px] tracking-[-0.7px] ${
+                        className={`shrink-0 text-[14px] font-bold leading-[20px] tracking-[-0.7px] ${
                           isIncome ? 'text-[#00BC7D]' : 'text-[#FB2C36]'
                         }`}
                       >

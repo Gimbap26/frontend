@@ -29,27 +29,27 @@ function Transactions() {
                 return (
                   <div
                     key={tx.id}
-                    className={`flex items-center justify-between py-[16px] ${
+                    className={`flex items-center justify-between gap-[12px] py-[16px] ${
                       index !== transactions.length - 1 ? 'border-b border-hairline' : ''
                     }`}
                   >
-                    <div className="flex items-center gap-[12px]">
+                    <div className="flex min-w-0 items-center gap-[12px]">
                       <div
-                        className={`flex h-[36px] w-[36px] items-center justify-center rounded-full ${
+                        className={`flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full ${
                           isIncome ? 'bg-[#ECFDF5] text-[#00BC7D]' : 'bg-[#F8FAFC] text-[#90A1B9]'
                         }`}
                       >
                         {isIncome ? <IncomeArrowDown size={16} /> : <ExpenseArrowUp size={16} />}
                       </div>
-                      <div>
-                        <p className="text-[14px] font-bold leading-[20px] text-[#1D293D]">{tx.title}</p>
-                        <p className="mt-[2px] text-[12px] font-normal leading-[16px] text-[#90A1B9]">
+                      <div className="min-w-0">
+                        <p className="truncate text-[14px] font-bold leading-[20px] text-[#1D293D]">{tx.title}</p>
+                        <p className="mt-[2px] truncate text-[12px] font-normal leading-[16px] text-[#90A1B9]">
                           {formatDotDate(tx.date)} · {tx.category}
                         </p>
                       </div>
                     </div>
                     <p
-                      className={`text-[14px] font-bold leading-[20px] ${
+                      className={`shrink-0 text-[14px] font-bold leading-[20px] ${
                         isIncome ? 'text-[#009966]' : 'text-[#45556C]'
                       }`}
                     >
