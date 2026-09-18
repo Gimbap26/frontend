@@ -23,30 +23,30 @@ function Layout() {
   const { pathname } = useLocation()
 
   return (
-    <div className="mx-auto flex min-h-svh w-full max-w-[403px] flex-col bg-canvas text-ink">
-      <div className="relative flex flex-1 flex-col">
-        <main className="no-scrollbar flex-1 overflow-y-auto pb-[88px]">
-          <Outlet />
-        </main>
+    <div className="mx-auto flex h-svh w-full max-w-[403px] flex-col bg-canvas text-ink">
+      {/* 콘텐츠 영역: 남는 공간을 차지하며 스크롤된다. */}
+      <main className="no-scrollbar flex-1 overflow-y-auto">
+        <Outlet />
+      </main>
 
-        <nav className="fixed bottom-0 left-1/2 flex w-full max-w-[403px] -translate-x-1/2 items-center justify-around bg-transparent px-[6px] pt-[8px] pb-[10px]">
-          {navItems.map(({ to, label, Icon, matchPaths }) => {
-            const isActive = matchPaths.includes(pathname)
-            return (
-              <NavLink
-                key={to}
-                to={to}
-                className={`flex flex-1 flex-col items-center gap-[4px] text-[11px] font-medium transition-colors ${
-                  isActive ? 'text-[#155DFC]' : 'text-muted'
-                }`}
-              >
-                <Icon />
-                <span>{label}</span>
-              </NavLink>
-            )
-          })}
-        </nav>
-      </div>
+      {/* 하단 네비게이션: 문서 흐름상 별도의 고정 영역이라 콘텐츠와 절대 겹치지 않는다. */}
+      <nav className="flex shrink-0 items-center justify-around border-t border-[#E9EDF2] bg-white px-[6px] pt-[8px] pb-[10px]">
+        {navItems.map(({ to, label, Icon, matchPaths }) => {
+          const isActive = matchPaths.includes(pathname)
+          return (
+            <NavLink
+              key={to}
+              to={to}
+              className={`flex flex-1 flex-col items-center gap-[4px] text-[11px] font-medium transition-colors ${
+                isActive ? 'text-[#155DFC]' : 'text-muted'
+              }`}
+            >
+              <Icon />
+              <span>{label}</span>
+            </NavLink>
+          )
+        })}
+      </nav>
     </div>
   )
 }

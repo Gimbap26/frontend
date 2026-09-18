@@ -51,6 +51,46 @@ export const scheduleAlerts = {
   },
 }
 
+// AI 에이전트 추천 질문 (화면 진입 시 보여줄 칩)
+export const agentSuggestions = [
+  '왜 이번 달은 흐림인가요?',
+  '9월 25일까지 얼마나 쓸 수 있나요?',
+  '지출에서 줄일 수 있는 항목은?',
+]
+
+// AI 에이전트 첫 인사 메시지 (대화 시작 시 화면에 기본으로 보여준다)
+export const agentGreeting = {
+  id: 'greeting',
+  role: 'assistant',
+  content:
+    '안녕하세요! 돈의 날씨 AI입니다.\n이번 달 금융 현황을 기반으로 질문에 답해드립니다.\n상단의 추천 질문을 눌러보세요.',
+  evidence: null,
+}
+
+// AI 답변 목업. 백엔드(rule-based/LLM)가 붙으면 실제 답변으로 대체된다.
+// 질문에 따라 다른 답을 흉내 내되, 없으면 기본 답변을 준다.
+export const agentMockAnswers = {
+  '9월 25일까지 얼마나 쓸 수 있나요?': {
+    answer:
+      '9/25 월급 입금 전까지 예상 잔액은 ₩1,366,000입니다.\n\n기본 생활비(식비·교통) ₩600,000 제외 시 자유 소비 가능 금액은 약 ₩766,000으로 추정됩니다.\n\n큰 지출은 9/25 이후로 미루시길 권장합니다.',
+    evidence: '9/25 월급 입금 후 예상 잔액: ₩4,166,000',
+    sources: ['dashboard', 'financial-events', 'forecasts'],
+  },
+  '왜 이번 달은 흐림인가요?': {
+    answer:
+      '이번 달은 대출 상환금(₩300,000)과 카드 결제(₩520,000) 등 고정 지출이 몰려 있어 흐림으로 판정됐습니다.\n\n월급 입금 전 최저 잔액이 생활비 기준치에 근접해 여유가 크지 않습니다.',
+    evidence: '최저 예상 잔액일: 9/25',
+    sources: ['forecasts', 'financial-events'],
+  },
+}
+
+export const agentDefaultAnswer = {
+  answer:
+    '현재 예정 지출을 반영해도 자금 상태는 대체로 안정적입니다.\n\n더 궁금한 점이 있으면 편하게 물어보세요.',
+  evidence: null,
+  sources: ['dashboard'],
+}
+
 /*
  * 참고: 총자산/확정지출 합계/계좌 조회 같은 파생 계산은
  * 데이터 훅(src/hooks)에서 처리한다. 이 파일은 순수 데이터만 둔다.

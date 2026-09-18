@@ -83,7 +83,7 @@ function Schedule() {
   }
 
   return (
-    <div className="-mb-[88px] flex min-h-[calc(100svh-88px)] flex-col bg-[#F2F4F6] pb-[88px]">
+    <div className="flex min-h-full flex-col bg-[#F2F4F6]">
       {/* 달력 (풀블리드 흰 배경) */}
       <section className="bg-surface px-[20px] pt-[48px] pb-[16px]">
         <div className="flex items-center justify-between">

@@ -3,6 +3,7 @@ import Layout from './components/Layout.jsx'
 import Accounts from './pages/accounts/Accounts.jsx'
 import Transactions from './pages/transactions/Transactions.jsx'
 import Schedule from './pages/schedule/Schedule.jsx'
+import Ai from './pages/ai/Ai.jsx'
 
 function App() {
   return (
@@ -17,10 +18,12 @@ function App() {
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/schedule" element={<Schedule />} />
 
+          {/* AI 분석 에이전트 (내 담당) */}
+          <Route path="/ai" element={<Ai />} />
+
           {/* 다른 팀원 담당. 화면은 아직 없어 배경만 보인다. */}
           <Route path="/home" element={null} />
           <Route path="/weather" element={null} />
-          <Route path="/ai" element={null} />
         </Route>
       </Routes>
     </BrowserRouter>
