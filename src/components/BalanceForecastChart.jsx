@@ -1,42 +1,81 @@
 import { useState } from "react";
+import { fallbackMoneyWeatherData } from "../data/fallbackData";
 import styles from "../styles/BalanceForecastChart.module.css";
 
-const yTicks = [
-  { label: "500만", y: 12 },
-  { label: "300만", y: 70.4 },
-  { label: "150만", y: 114.2 },
-  { label: "0만", y: 158 },
-];
+const fallbackTimeline = fallbackMoneyWeatherData.forecast.timeline;
 
-const xLabels = [
-  { label: "9/1", x: 48 },
-  { label: "9/5", x: 93 },
-  { label: "9/10", x: 138 },
-  { label: "9/15", x: 183 },
-  { label: "9/18", x: 228 },
-  { label: "9/25", x: 273 },
-  { label: "9/30", x: 318 },
-];
+const CHART = {
+  left: 48,
+  right: 318,
+  top: 12,
+  bottom: 158,
+};
 
-const points = [
-  { date: "9/1", balance: 2400000, x: 48, y: 88 },
-  { date: "9/5", balance: 1900000, x: 93, y: 103 },
-  { date: "9/10", balance: 1800000, x: 138, y: 105 },
-  { date: "9/15", balance: 1760000, x: 183, y: 106 },
-  { date: "9/18", balance: 1640000, x: 228, y: 110 },
-  { date: "9/25", balance: 4180000, x: 273, y: 36 },
-  { date: "9/30", balance: 4050000, x: 318, y: 40 },
-];
-
-const linePath =
-  "M48 88 C64 94 76 100 93 103 C107 105 123 105 138 105 C153 105 168 106 183 106 C198 107 213 110 228 110 C246 109 254 36 273 36 C289 36 303 38 318 40";
-
-const areaPath = `${linePath} L318 158 L48 158 Z`;
+const formatChartDate = (dateString) => {
+  const [, month, day] = dateString.split("-");
+  return `${Number(month)}/${Number(day)}`;
+};
 
 const formatWon = (value) => `₩${value.toLocaleString()}`;
 
-export default function BalanceForecastChart() {
+const formatTick = (value) => `${Math.round(value / 10000)}만`;
+
+const pickVisibleTimeline = (timeline) => {
+  if (timeline.length <= 7) {
+    return timeline;
+  }
+
+  return timeline.filter((_, index) => {
+    const step = (timeline.length - 1) / 6;
+    return index === Math.round(step * Math.round(index / step));
+  });
+};
+
+const buildChartPoints = (timeline = fallbackTimeline) => {
+  const sourceTimeline = timeline.length > 0 ? timeline : fallbackTimeline;
+  const visibleTimeline = pickVisibleTimeline(sourceTimeline);
+  const balances = visibleTimeline.map((point) => point.balance);
+  const maxBalance = Math.max(...balances, 5000000);
+  const minBalance = Math.min(...balances, 0);
+  const balanceRange = Math.max(maxBalance - minBalance, 1);
+  const xRange = CHART.right - CHART.left;
+  const yRange = CHART.bottom - CHART.top;
+
+  return visibleTimeline.map((point, index) => {
+    const x =
+      visibleTimeline.length === 1
+        ? CHART.left
+        : CHART.left + (xRange * index) / (visibleTimeline.length - 1);
+    const y =
+      CHART.bottom - ((point.balance - minBalance) / balanceRange) * yRange;
+
+    return {
+      ...point,
+      date: formatChartDate(point.date),
+      x,
+      y,
+    };
+  });
+};
+
+const buildLinePath = (chartPoints) =>
+  chartPoints
+    .map((point, index) => `${index === 0 ? "M" : "L"}${point.x} ${point.y}`)
+    .join(" ");
+
+export default function BalanceForecastChart({ timeline = fallbackTimeline }) {
   const [activePoint, setActivePoint] = useState(null);
+  const chartPoints = buildChartPoints(timeline);
+  const linePath = buildLinePath(chartPoints);
+  const areaPath = `${linePath} L${CHART.right} ${CHART.bottom} L${CHART.left} ${CHART.bottom} Z`;
+  const balances = timeline.map((point) => point.balance);
+  const maxBalance = Math.max(...balances, 5000000);
+  const yTicks = [
+    { label: formatTick(maxBalance), y: CHART.top },
+    { label: formatTick(maxBalance * 0.6), y: 70.4 },
+    { label: formatTick(maxBalance * 0.3), y: 114.2 },
+    { label: "0만", y: CHART.bottom },
+  ];
   const tooltipX = activePoint
     ? Math.min(Math.max(activePoint.x - 39, 44), 250)
     : 0;
@@ -48,7 +87,7 @@ export default function BalanceForecastChart() {
         className={styles.svg}
         viewBox="0 0 340 212"
         role="img"
-        aria-label="9월 잔액 변화 예측 차트"
+        aria-label="잔액 변화 예측 차트"
       >
         <defs>
           <linearGradient id="balanceAreaGradient" x1="0" x2="0" y1="0" y2="1">
@@ -82,7 +121,7 @@ export default function BalanceForecastChart() {
         />
         <path className={styles.balanceLine} d={linePath} />
 
-        {points.map((point) => (
+        {chartPoints.map((point) => (
           <g
             className={styles.pointGroup}
             key={point.date}
@@ -93,7 +132,12 @@ export default function BalanceForecastChart() {
             onTouchStart={() => setActivePoint(point)}
             tabIndex="0"
           >
-            <circle className={styles.pointHitArea} cx={point.x} cy={point.y} r="12" />
+            <circle
+              className={styles.pointHitArea}
+              cx={point.x}
+              cy={point.y}
+              r="12"
+            />
             <circle className={styles.point} cx={point.x} cy={point.y} r="4.5" />
           </g>
         ))}
@@ -125,9 +169,9 @@ export default function BalanceForecastChart() {
           </g>
         )}
 
-        {xLabels.map((item) => (
-          <text className={styles.xLabel} key={item.label} x={item.x} y="184">
-            {item.label}
+        {chartPoints.map((item) => (
+          <text className={styles.xLabel} key={item.date} x={item.x} y="184">
+            {item.date}
           </text>
         ))}
       </svg>

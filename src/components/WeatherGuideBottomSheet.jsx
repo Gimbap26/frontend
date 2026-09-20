@@ -8,6 +8,7 @@ import close from "../assets/close.svg";
 
 const WEATHER_GUIDES = [
   {
+    statusCode: "SUNNY",
     status: "맑음",
     tone: "sunny",
     icon: sunny,
@@ -17,6 +18,7 @@ const WEATHER_GUIDES = [
     advice: "여유 자금으로 저축이나 투자를 고려해 보세요.",
   },
   {
+    statusCode: "CLOUDY",
     status: "구름 조금",
     tone: "cloudy",
     icon: cloudy,
@@ -26,16 +28,17 @@ const WEATHER_GUIDES = [
     advice: "예정 지출을 확인하고 불필요한 소비를 줄여보세요.",
   },
   {
+    statusCode: "OVERCAST",
     status: "흐림",
     tone: "overcast",
     icon: overcast,
-    isCurrent: true,
     description: "소비를 줄이거나 예정 지출 일정을 조정해 보세요.",
     condition: "예정 지출 이후 여유 자금이 부족",
     meaning: "소비 축소 또는 일정 조정 필요",
     advice: "소비를 줄이거나 예정 지출 일정을 조정해 보세요.",
   },
   {
+    statusCode: "RAINY",
     status: "비",
     tone: "rainy",
     icon: rainy,
@@ -49,7 +52,11 @@ const WEATHER_GUIDES = [
 const CLOSE_DRAG_DISTANCE = 300;
 const MAX_DRAG_OFFSET = CLOSE_DRAG_DISTANCE + 80;
 
-export default function WeatherGuideBottomSheet({ isOpen, onClose }) {
+export default function WeatherGuideBottomSheet({
+  isOpen,
+  onClose,
+  currentWeather,
+}) {
   const contentRef = useRef(null);
   const touchStartYRef = useRef(0);
   const dragStartYRef = useRef(0);
@@ -195,7 +202,7 @@ export default function WeatherGuideBottomSheet({ isOpen, onClose }) {
                       <div className={styles.guideCard__statusText}>
                         {guide.status}
                       </div>
-                      {guide.isCurrent && (
+                      {guide.statusCode === currentWeather && (
                         <div className={styles.guideCard__currentBadge}>
                           현재
                         </div>

@@ -1,37 +1,40 @@
 import { useNavigate } from "react-router-dom";
+import { useHomeMoneyWeather } from "../hooks/useHome";
 import styles from "../styles/HomePage.module.css";
 import arrow from "../assets/arrow.svg";
-import weather from "../assets/weather_overcast.svg";
 import chat from "../assets/chat.svg";
+import sunny from "../assets/weather_sunny.svg";
+import cloudy from "../assets/weather_cloudy.svg";
+import overcast from "../assets/weather_overcast.svg";
+import rainy from "../assets/weather_rainy.svg";
 
-const MOCK_UPCOMING_EXPENSES = [
-  {
-    id: 1,
-    name: "카드 결제",
-    date: "9월 5일",
-    amount: 520000,
-  },
-  {
-    id: 2,
-    name: "통신비",
-    date: "9월 10일",
-    amount: 80000,
-  },
-  {
-    id: 3,
-    name: "구독 서비스",
-    date: "9월 15일",
-    amount: 39000,
-  },
-];
+const WEATHER_ICONS = {
+  SUNNY: sunny,
+  CLOUDY: cloudy,
+  OVERCAST: overcast,
+  RAINY: rainy,
+};
+
+const WEATHER_TONES = {
+  SUNNY: "sunny",
+  CLOUDY: "cloudy",
+  OVERCAST: "overcast",
+  RAINY: "rainy",
+};
+
+const formatWon = (value) => `₩${value.toLocaleString()}`;
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { data } = useHomeMoneyWeather();
+  const weatherIcon = WEATHER_ICONS[data.weather] ?? overcast;
+  const weatherToneClass =
+    styles[`weatherTone--${WEATHER_TONES[data.weather] ?? "overcast"}`];
 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <div className={styles.header__date}>2026년 9월</div>
+        <div className={styles.header__date}>{data.baseMonthLabel}</div>
         <div className={styles.header__title}>MoneyWeather</div>
       </header>
 
@@ -39,33 +42,37 @@ export default function HomePage() {
         <div className={styles.mainCard__hero}>
           <div className={styles.mainCard__heroText}>
             <div className={styles.mainCard__status}>
-              <div className={styles.mainCard__statusDot}></div>
-              <div className={styles.mainCard__statusText}>흐림</div>
+              <div
+                className={`${styles.mainCard__statusDot} ${weatherToneClass}`}
+              ></div>
+              <div className={`${styles.mainCard__statusText} ${weatherToneClass}`}>
+                {data.weatherLabel}
+              </div>
             </div>
             <div className={styles.mainCard__message}>
               <div className={styles.mainCard__title}>
-                이번 달 자금 관리가
-                <br />
-                필요합니다
+                {data.weatherDescription}
               </div>
             </div>
           </div>
 
           {/* 날씨 아이콘 */}
           <div className={styles.mainCard__weatherIcon}>
-            <img src={weather} alt="날씨" />
+            <img src={weatherIcon} alt="날씨" />
           </div>
         </div>
 
-        <div className={styles.mainCard__description}>
-          소비를 줄이거나 예정 지출 일정을 조정해 보세요.
+        <div className={`${styles.mainCard__description} ${weatherToneClass}`}>
+          {data.weatherGuide}
         </div>
 
         {/* 자금 정보 */}
         <div className={styles.mainCard__summary}>
           <div className={styles.mainCard__summaryItem}>
             <div className={styles.mainCard__summaryLabel}>현재 잔액</div>
-            <div className={styles.mainCard__summaryValue}>₩2,400,000</div>
+            <div className={styles.mainCard__summaryValue}>
+              {formatWon(data.currentBalance)}
+            </div>
           </div>
 
           <div className={styles.mainCard__summaryItem}>
@@ -73,7 +80,7 @@ export default function HomePage() {
             <div
               className={`${styles.mainCard__summaryValue} ${styles["mainCard__summaryValue--available"]}`}
             >
-              ₩1,366,000
+              {formatWon(data.availableFunds)}
             </div>
           </div>
         </div>
@@ -81,7 +88,7 @@ export default function HomePage() {
         {/* 하단 */}
         <div className={styles.mainCard__footer}>
           <div className={styles.mainCard__scheduledExpense}>
-            예정 지출 ₩1,034,000 반영됨
+            예정 지출 {formatWon(data.fixedOutflows)} 반영됨
           </div>
 
           <button
@@ -112,7 +119,7 @@ export default function HomePage() {
 
         {/* 예정 지출 목록 */}
         <div className={styles.expenseContainer__list}>
-          {MOCK_UPCOMING_EXPENSES.map((expense) => (
+          {data.nextEvents.map((expense) => (
             <div className={styles.expenseItem} key={expense.id}>
               <div className={styles.expenseItem__info}>
                 <div className={styles.expenseItem__name}>{expense.name}</div>
@@ -121,7 +128,7 @@ export default function HomePage() {
               </div>
 
               <div className={styles.expenseItem__amount}>
-                -₩{expense.amount.toLocaleString()}
+                -{formatWon(expense.amount)}
               </div>
             </div>
           ))}

@@ -88,7 +88,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: #90a1b9;
+  background-color: currentColor;
 }
 
 .weatherCard__statusText {
@@ -104,6 +104,22 @@
   font-size: 13px;
   line-height: 19.5px;
   letter-spacing: -0.7px;
+}
+
+.weatherTone--sunny {
+  color: #e17100;
+}
+
+.weatherTone--cloudy {
+  color: #0084d1;
+}
+
+.weatherTone--overcast {
+  color: #62748e;
+}
+
+.weatherTone--rainy {
+  color: #e7000b;
 }
 
 .summaryCard {

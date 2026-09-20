@@ -2,24 +2,39 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BalanceForecastChart from "../components/BalanceForecastChart";
 import WeatherGuideBottomSheet from "../components/WeatherGuideBottomSheet";
+import { useWeatherDetailMoneyWeather } from "../hooks/useWeatherDetail";
 import styles from "../styles/WeatherDetail.module.css";
 import arrow from "../assets/arrow2.svg";
 import info from "../assets/info.svg";
-import weather from "../assets/weather_overcast.svg";
 import alert from "../assets/alert.svg";
+import sunny from "../assets/weather_sunny.svg";
+import cloudy from "../assets/weather_cloudy.svg";
+import overcast from "../assets/weather_overcast.svg";
+import rainy from "../assets/weather_rainy.svg";
 
-const MOCK_FINANCE_SCHEDULE = [
-  { id: 1, name: "카드 결제", date: "9/5", amount: 520000, type: "expense" },
-  { id: 2, name: "통신비", date: "9/10", amount: 80000, type: "expense" },
-  { id: 3, name: "구독 서비스", date: "9/15", amount: 39000, type: "expense" },
-  { id: 4, name: "보험료", date: "9/18", amount: 95000, type: "expense" },
-  { id: 5, name: "대출 상환금", date: "9/25", amount: 300000, type: "expense" },
-  { id: 6, name: "월급", date: "9/25", amount: 2800000, type: "income" },
-];
+const WEATHER_ICONS = {
+  SUNNY: sunny,
+  CLOUDY: cloudy,
+  OVERCAST: overcast,
+  RAINY: rainy,
+};
+
+const WEATHER_TONES = {
+  SUNNY: "sunny",
+  CLOUDY: "cloudy",
+  OVERCAST: "overcast",
+  RAINY: "rainy",
+};
+
+const formatWon = (value) => `₩${value.toLocaleString()}`;
 
 export default function WeatherDetail() {
   const navigate = useNavigate();
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const { data } = useWeatherDetailMoneyWeather();
+  const weatherIcon = WEATHER_ICONS[data.weather] ?? overcast;
+  const weatherToneClass =
+    styles[`weatherTone--${WEATHER_TONES[data.weather] ?? "overcast"}`];
 
   return (
     <>
@@ -47,19 +62,25 @@ export default function WeatherDetail() {
         {/* 날씨 요약 */}
         <section className={styles.weatherCard}>
           <div className={styles.weatherCard__icon}>
-            <img src={weather} alt="날씨" />
+            <img src={weatherIcon} alt="날씨" />
           </div>
 
           <div className={styles.weatherCard__content}>
-            <div className={styles.weatherCard__date}>2026년 9월 금융 날씨</div>
-
-            <div className={styles.weatherCard__status}>
-              <div className={styles.weatherCard__statusDot}></div>
-              <div className={styles.weatherCard__statusText}>흐림</div>
+            <div className={styles.weatherCard__date}>
+              {data.baseMonthLabel} 금융 날씨
             </div>
 
-            <div className={styles.weatherCard__description}>
-              소비를 줄이거나 예정 지출 일정을 조정해 보세요.
+            <div className={styles.weatherCard__status}>
+              <div
+                className={`${styles.weatherCard__statusDot} ${weatherToneClass}`}
+              ></div>
+              <div className={`${styles.weatherCard__statusText} ${weatherToneClass}`}>
+                {data.weatherLabel}
+              </div>
+            </div>
+
+            <div className={`${styles.weatherCard__description} ${weatherToneClass}`}>
+              {data.weatherGuide}
             </div>
           </div>
         </section>
@@ -68,7 +89,9 @@ export default function WeatherDetail() {
         <section className={styles.summaryCard}>
           <div className={styles.summaryCard__item}>
             <div className={styles.summaryCard__label}>현재 잔액</div>
-            <div className={styles.summaryCard__value}>₩2,400,000</div>
+            <div className={styles.summaryCard__value}>
+              {formatWon(data.currentBalance)}
+            </div>
           </div>
 
           <div className={styles.summaryCard__item}>
@@ -76,7 +99,7 @@ export default function WeatherDetail() {
             <div
               className={`${styles.summaryCard__value} ${styles["summaryCard__value--danger"]}`}
             >
-              ₩1,034,000
+              {formatWon(data.fixedOutflows)}
             </div>
           </div>
 
@@ -85,7 +108,7 @@ export default function WeatherDetail() {
             <div
               className={`${styles.summaryCard__value} ${styles["summaryCard__value--available"]}`}
             >
-              ₩1,366,000
+              {formatWon(data.availableFunds)}
             </div>
           </div>
         </section>
@@ -94,7 +117,7 @@ export default function WeatherDetail() {
         <section className={styles.forecastCard}>
           <div className={styles.card__title}>잔액 변화 예측</div>
 
-          <BalanceForecastChart />
+          <BalanceForecastChart timeline={data.forecast.timeline} />
 
           <div className={styles.forecastCard__legend}>
             <div className={styles.forecastCard__legendLine}></div>
@@ -118,7 +141,9 @@ export default function WeatherDetail() {
                 ></div>
               </div>
 
-              <div className={styles.basisCard__value}>₩2,400,000</div>
+              <div className={styles.basisCard__value}>
+                {formatWon(data.currentBalance)}
+              </div>
             </div>
 
             <div className={styles.basisCard__item}>
@@ -133,7 +158,7 @@ export default function WeatherDetail() {
               <div
                 className={`${styles.basisCard__value} ${styles["basisCard__value--danger"]}`}
               >
-                ₩1,034,000
+                {formatWon(data.fixedOutflows)}
               </div>
             </div>
 
@@ -149,7 +174,7 @@ export default function WeatherDetail() {
               <div
                 className={`${styles.basisCard__value} ${styles["basisCard__value--available"]}`}
               >
-                ₩1,366,000
+                {formatWon(data.availableFunds)}
               </div>
             </div>
           </div>
@@ -157,7 +182,7 @@ export default function WeatherDetail() {
           <div className={styles.basisCard__notice}>
             <img className={styles.basisCard__noticeIcon} src={alert} alt="경고" />
             <div className={styles.basisCard__noticeText}>
-              9/25 월급 입금 전까지 잔액이 생활비 기준치를 하회할 수 있습니다.
+              {data.dashboardRiskSummary}
             </div>
           </div>
         </section>
@@ -167,7 +192,7 @@ export default function WeatherDetail() {
           <div className={styles.card__title}>이번 달 금융 일정</div>
 
           <div className={styles.scheduleCard__list}>
-            {MOCK_FINANCE_SCHEDULE.map((item) => (
+            {data.monthlySchedule.map((item) => (
               <div className={styles.scheduleCard__item} key={item.id}>
                 <div className={styles.scheduleCard__info}>
                   <div
@@ -186,8 +211,8 @@ export default function WeatherDetail() {
                     styles[`scheduleCard__amount--${item.type}`]
                   }`}
                 >
-                  {item.type === "income" ? "+" : "-"}₩
-                  {item.amount.toLocaleString()}
+                  {item.type === "income" ? "+" : "-"}
+                  {formatWon(item.amount)}
                 </div>
               </div>
             ))}
@@ -198,6 +223,7 @@ export default function WeatherDetail() {
       <WeatherGuideBottomSheet
         isOpen={isGuideOpen}
         onClose={() => setIsGuideOpen(false)}
+        currentWeather={data.weather}
       />
     </>
   );
