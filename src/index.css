@@ -1,4 +1,5 @@
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+@import "tailwindcss";
 
 * {
   box-sizing: border-box;
@@ -20,7 +21,6 @@ img {
   -khtml-user-drag: none;
   -moz-user-drag: none;
   -o-user-drag: none;
-  -webkit-user-drag: none;
 }
 
 .appContainer {
@@ -45,4 +45,39 @@ img {
     height: 844px;
     min-height: 844px;
   }
+}
+
+/*
+ * App design tokens.
+ * Define colors here and use them as Tailwind tokens such as bg-brand or text-danger.
+ */
+@theme {
+  /* Use the static Pretendard font imported above. */
+  --font-sans: "Pretendard", sans-serif;
+
+  --color-brand: #2f6bff;
+  --color-brand-soft: #eaf0ff;
+  --color-danger: #fb2c36;
+  --color-ink: #1d2b44;
+  --color-muted: #9aa9c0;
+  --color-surface: #ffffff;
+  --color-canvas: #f8fafc;
+  --color-hairline: #eef1f5;
+}
+
+:root {
+  font-family: "Pretendard", sans-serif;
+  letter-spacing: -0.7px;
+}
+
+/*
+ * Utility for keeping scroll behavior while hiding scrollbars.
+ */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE, Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
 }
