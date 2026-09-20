@@ -71,9 +71,7 @@
 .bottomSheet__title {
   font-size: 18px;
   font-weight: 700;
-  line-height: 24px;
-  letter-spacing: -0.7px;
-}
+  line-height: 24px;}
 
 .bottomSheet__closeButton {
   width: 22px;
@@ -111,9 +109,7 @@
   color: #1447e6;
   font-size: 14px;
   font-weight: 700;
-  line-height: 16px;
-  letter-spacing: -0.7px;
-}
+  line-height: 16px;}
 
 .formulaCard__box {
   width: 100%;
@@ -122,16 +118,12 @@
   background: #fff;
   text-align: center;
   font-size: 14px;
-  line-height: 22.75px;
-  letter-spacing: -0.7px;
-}
+  line-height: 22.75px;}
 
 .formulaCard__caption {
   color: #62748e;
   font-size: 12px;
-  line-height: 19.5px;
-  letter-spacing: -0.7px;
-}
+  line-height: 19.5px;}
 
 .guideList {
   display: flex;
@@ -189,9 +181,7 @@
 .guideCard__statusText {
   font-size: 18px;
   font-weight: 700;
-  line-height: 28px;
-  letter-spacing: -0.7px;
-}
+  line-height: 28px;}
 
 .guideCard__currentBadge {
   padding: 2px 8px;
@@ -200,15 +190,11 @@
   color: #fff;
   font-size: 12px;
   font-weight: 500;
-  line-height: 16px;
-  letter-spacing: -0.7px;
-}
+  line-height: 16px;}
 
 .guideCard__description {
   font-size: 12px;
-  line-height: 16px;
-  letter-spacing: -0.7px;
-}
+  line-height: 16px;}
 
 .metaList__row {
   display: grid;
@@ -228,16 +214,12 @@
   color: #90a1b9;
   font-size: 14px;
   font-weight: 500;
-  line-height: 16px;
-  letter-spacing: -0.7px;
-}
+  line-height: 16px;}
 
 .metaList__value {
   color: #314158;
   font-size: 14px;
-  line-height: 19.5px;
-  letter-spacing: -0.7px;
-}
+  line-height: 19.5px;}
 
 .guideCard--sunny {
   color: #e17100;

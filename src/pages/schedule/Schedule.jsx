@@ -83,25 +83,25 @@ function Schedule() {
   }
 
   return (
-    <div className="flex min-h-full flex-col bg-[#F2F4F6]">
+    <div className="flex min-h-full flex-col bg-canvas">
       {/* 달력 (풀블리드 흰 배경) */}
-      <section className="bg-surface px-[20px] pt-[48px] pb-[16px]">
+      <section className="bg-surface px-[20px] pt-[24px] pb-[16px]">
         <div className="flex items-center justify-between">
           <button
             type="button"
             onClick={() => moveMonth(-1)}
-            className="flex h-[32px] w-[32px] items-center justify-center rounded-[10px] text-[#90A1B9] hover:bg-canvas"
+            className="flex h-[32px] w-[32px] cursor-pointer items-center justify-center rounded-[10px] text-[#90A1B9] hover:bg-canvas"
             aria-label="이전 달"
           >
             <PreviousMonthButton size={20} />
           </button>
-          <p className="text-[16px] font-bold leading-[24px] tracking-[-0.7px] text-[#0F172B]">
+          <p className="text-[18px] font-bold leading-[24px] text-[#0F172B]">
             {view.year}년 {view.month + 1}월
           </p>
           <button
             type="button"
             onClick={() => moveMonth(1)}
-            className="flex h-[32px] w-[32px] items-center justify-center rounded-[10px] text-[#90A1B9] hover:bg-canvas"
+            className="flex h-[32px] w-[32px] cursor-pointer items-center justify-center rounded-[10px] text-[#90A1B9] hover:bg-canvas"
             aria-label="다음 달"
           >
             <NextMonthButton size={20} />
@@ -130,7 +130,7 @@ function Schedule() {
                 <button
                   type="button"
                   onClick={() => setSelected(iso)}
-                  className={`relative flex h-[44px] w-[44px] flex-col items-center justify-center rounded-[8px] text-[14px] leading-[14px] transition-colors ${
+                  className={`relative flex h-[44px] w-[44px] cursor-pointer flex-col items-center justify-center rounded-[8px] text-[14px] leading-[14px] transition-colors ${
                     isSelected
                       ? 'bg-[#155DFC] font-bold text-white'
                       : isToday
@@ -157,10 +157,10 @@ function Schedule() {
       </section>
 
       {/* 선택한 날짜의 일정 + 주의 안내 */}
-      <div className="flex flex-col gap-[16px] px-[16px] pt-[20px]">
+      <div className="flex flex-col gap-[16px] px-[16px] pt-[20px] pb-[24px]">
         <AsyncBoundary loading={loading} error={error}>
           <section>
-            <h2 className="mb-[12px] text-[14px] font-bold leading-[20px] tracking-[-0.7px] text-[#314158]">
+            <h2 className="mb-[12px] text-[15px] font-bold leading-[20px] text-[#314158]">
               {view.month + 1}월 {Number(selected.split('-')[2])}일 일정
             </h2>
 
@@ -187,10 +187,10 @@ function Schedule() {
                         >
                           {isIncome ? <IncomeArrowDown size={16} /> : <ExpenseArrowUp size={16} />}
                         </div>
-                        <p className="truncate text-[14px] font-medium leading-[20px] tracking-[-0.7px] text-[#1D293D]">{item.title}</p>
+                        <p className="truncate text-[15px] font-medium leading-[20px] text-[#1D293D]">{item.title}</p>
                       </div>
                       <p
-                        className={`shrink-0 text-[14px] font-bold leading-[20px] tracking-[-0.7px] ${
+                        className={`shrink-0 text-[15px] font-bold leading-[20px] ${
                           isIncome ? 'text-[#00BC7D]' : 'text-[#FB2C36]'
                         }`}
                       >
@@ -208,12 +208,12 @@ function Schedule() {
         {selectedAlert && (
           <section className="flex items-start gap-[10px] rounded-[12px] border-[0.791px] border-[#FFCECC] bg-[#FFECEB] px-[16px] py-[12px]">
             <span className="mt-[1px] text-[#FF5750]">
-              <WarningIcon size={14} />
+              <WarningIcon size={16} />
             </span>
             <div>
-              <p className="text-[12px] font-bold leading-[16px] tracking-[-0.7px] text-[#FF5750]">{selectedAlert.title}</p>
+              <p className="text-[13px] font-bold leading-[16px] text-[#FF5750]">{selectedAlert.title}</p>
               {selectedAlert.lines.map((line) => (
-                <p key={line} className="mt-[2px] text-[12px] font-normal leading-[19.5px] tracking-[-0.7px] text-[#FF5750]">
+                <p key={line} className="mt-[2px] text-[13px] font-normal leading-[19.5px] text-[#FF5750]">
                   {line}
                 </p>
               ))}

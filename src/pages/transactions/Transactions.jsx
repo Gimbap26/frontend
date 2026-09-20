@@ -18,7 +18,7 @@ function Transactions() {
     <div className="flex flex-col">
       <AssetHeader />
 
-      <div className="px-[16px] pt-[16px]">
+      <div className="px-[16px] pt-[16px] pb-[24px]">
         <AsyncBoundary loading={loading} error={error}>
           {transactions.length === 0 ? (
             <p className="py-[40px] text-center text-[13px] text-muted">거래 내역이 없어요</p>

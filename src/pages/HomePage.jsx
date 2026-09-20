@@ -45,7 +45,9 @@ export default function HomePage() {
               <div
                 className={`${styles.mainCard__statusDot} ${weatherToneClass}`}
               ></div>
-              <div className={`${styles.mainCard__statusText} ${weatherToneClass}`}>
+              <div
+                className={`${styles.mainCard__statusText} ${weatherToneClass}`}
+              >
                 {data.weatherLabel}
               </div>
             </div>
@@ -112,7 +114,10 @@ export default function HomePage() {
             다가오는 예정 지출
           </div>
 
-          <button className={styles.expenseContainer__viewAll}>
+          <button
+            className={styles.expenseContainer__viewAll}
+            onClick={() => navigate("/accounts")}
+          >
             전체 보기
           </button>
         </div>
@@ -135,7 +140,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <button className={styles.chatBtn}>
+      <button className={styles.chatBtn} onClick={() => navigate("/ai")}>
         <img src={chat} alt="채팅" />
         AI에게 이번 달 분석 물어보기
       </button>

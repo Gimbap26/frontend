@@ -34,7 +34,7 @@ function MessageBubble({ message }) {
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[78%] rounded-[16px] rounded-br-[4px] bg-[#155DFC] px-[16px] py-[12px] text-[14px] leading-[20px] tracking-[-0.7px] text-white">
+        <div className="max-w-[78%] rounded-[16px] rounded-br-[4px] bg-[#155DFC] px-[16px] py-[12px] text-[14px] leading-[20px] text-white">
           {paragraphs.map((p, i) => (
             <p key={i} className={i > 0 ? 'mt-[8px] whitespace-pre-line' : 'whitespace-pre-line'}>
               {p}
@@ -54,7 +54,7 @@ function MessageBubble({ message }) {
           {paragraphs.map((p, i) => (
             <p
               key={i}
-              className={`text-[14px] leading-[20px] tracking-[-0.7px] text-[#1D293D] ${
+              className={`text-[14px] leading-[20px] text-[#1D293D] ${
                 i > 0 ? 'mt-[10px] whitespace-pre-line' : 'whitespace-pre-line'
               }`}
             >
@@ -65,7 +65,7 @@ function MessageBubble({ message }) {
 
         {/* 근거 줄 (있을 때만) - 말풍선 밖 아래, padding 0 12 8 12 / gap 6 */}
         {message.evidence && (
-          <div className="flex items-center gap-[6px] px-[12px] pt-[8px] text-[12px] leading-[20px] tracking-[-0.7px] text-[#62748E]">
+          <div className="flex items-center gap-[6px] px-[12px] pt-[8px] text-[12px] leading-[20px] text-[#62748E]">
             <EvidenceIcon size={13} />
             <span>{message.evidence}</span>
           </div>
@@ -143,7 +143,7 @@ function SuggestionRow({ suggestions, disabled, onPick }) {
               onPick(text)
             }}
             disabled={disabled}
-            className="shrink-0 whitespace-nowrap rounded-full border-[0.791px] border-[#DBEAFE] bg-[#EFF6FF] px-[12px] py-[6px] text-[12px] font-medium leading-[16px] tracking-[-0.7px] text-[#1447E6] select-none disabled:opacity-50"
+            className="shrink-0 cursor-pointer whitespace-nowrap rounded-full border-[0.791px] border-[#DBEAFE] bg-[#EFF6FF] px-[12px] py-[6px] text-[12px] font-medium leading-[16px] text-[#1447E6] select-none disabled:cursor-not-allowed disabled:opacity-50"
           >
             {text}
           </button>
@@ -179,11 +179,11 @@ function Ai() {
   return (
     <div className="flex h-full flex-col bg-canvas">
       {/* 헤더 */}
-      <header className="shrink-0 bg-surface px-[20px] pt-[48px] pb-[16px]">
-        <h1 className="text-[18px] font-bold leading-[24px] tracking-[-0.7px] text-[#0F172B]">
+      <header className="shrink-0 bg-surface px-[20px] pt-[24px] pb-[16px]">
+        <h1 className="text-[18px] font-bold leading-[24px] text-[#0F172B]">
           AI 분석 에이전트
         </h1>
-        <p className="mt-[2px] text-[12px] leading-[16px] tracking-[-0.7px] text-[#90A1B9]">
+        <p className="mt-[2px] text-[13px] leading-[16px] text-[#90A1B9]">
           금융 데이터 기반 맞춤 분석
         </p>
       </header>
@@ -211,13 +211,13 @@ function Ai() {
             value={input}
             onChange={(event) => setInput(event.target.value)}
             placeholder="이번 달 금융에 대해 물어보세요"
-            className="h-[44px] flex-1 rounded-full bg-[#F1F5F9] px-[18px] text-[14px] tracking-[-0.7px] text-ink placeholder:text-[#90A1B9] focus:outline-none"
+            className="h-[44px] flex-1 rounded-full bg-[#F1F5F9] px-[18px] text-[14px] text-ink placeholder:text-[#90A1B9] focus:outline-none"
           />
           <button
             type="submit"
             disabled={!input.trim() || sending}
             aria-label="전송"
-            className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-full bg-[#155DFC] transition-colors disabled:bg-[#E2E8F0]"
+            className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#155DFC] transition-colors disabled:cursor-not-allowed disabled:bg-[#E2E8F0]"
           >
             <img src={sendIcon} alt="" width={16} height={16} />
           </button>

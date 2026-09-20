@@ -9,7 +9,7 @@ export const fallbackMoneyWeatherData = {
   weatherDescription: "이번 달 자금 관리가 필요합니다",
   weatherGuide: "소비를 줄이거나 예정 지출 일정을 조정해 보세요.",
   dashboardRiskSummary:
-    "9/25 월급 입금 전까지 잔액이 생활비 기준치를 하회할 수 있습니다.",
+    "9/25 월급 입금 전까지 잔액이 생활비 기준치를 하회할 수 있으니 추가 지출에 주의하세요.",
   weatherStatuses: [
     {
       status: "SUNNY",

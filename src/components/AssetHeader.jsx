@@ -19,9 +19,9 @@ function AssetHeader() {
 
   return (
     <section className="bg-surface">
-      {/* 총 자산 (패딩 48 / 20 / 20 / 20) */}
-      <div className="flex flex-col items-start px-[20px] pt-[48px] pb-[20px]">
-        <p className="text-[12px] font-normal leading-[16px] text-[#90A1B9]">총 자산</p>
+      {/* 총 자산 */}
+      <div className="flex flex-col items-start px-[20px] pt-[24px] pb-[20px]">
+        <p className="text-[14px] font-normal leading-[16px] text-[#90A1B9]">총 자산</p>
         <p className="text-[24px] font-bold leading-[32px] text-[#0F172B]">
           {loading ? '—' : formatWon(totalAssets)}
         </p>

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useAsync } from './useAsync.js'
-import { fetchAccounts, fetchUpcomingExpenses } from '../api/assets.js'
+import { fetchAccounts, fetchRiskSummary, fetchUpcomingExpenses } from '../api/assets.js'
 
 /*
  * 계좌 목록 훅.
@@ -28,4 +28,9 @@ export function useUpcomingExpenses() {
     [expenses],
   )
   return { expenses, total, loading, error }
+}
+
+export function useRiskSummary() {
+  const { data, loading, error } = useAsync(fetchRiskSummary)
+  return { riskSummary: data ?? '', loading, error }
 }

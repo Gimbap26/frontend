@@ -10,6 +10,7 @@
 
 import { request, withFallback, monthRange } from './client.js'
 import { accounts, upcomingExpenses } from '../data/mockData.js'
+import { fallbackMoneyWeatherData } from '../data/fallbackData.js'
 
 // 백엔드 계좌 -> 프론트 계좌 형태로 변환
 //  { accountId, bankName, accountName, balance, purpose, includedInAssets }
@@ -59,5 +60,16 @@ export function fetchUpcomingExpenses() {
           .map(mapUpcomingExpense),
       ),
     upcomingExpenses,
+  )
+}
+
+export function fetchRiskSummary() {
+  const { from, to } = monthRange()
+  return withFallback(
+    () =>
+      request(`/dashboard?baseDate=${from}&targetDate=${to}`).then(
+        (data) => data?.riskSummary ?? fallbackMoneyWeatherData.dashboardRiskSummary,
+      ),
+    fallbackMoneyWeatherData.dashboardRiskSummary,
   )
 }

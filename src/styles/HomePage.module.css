@@ -1,5 +1,5 @@
 .container {
-  padding: 24px 16px 96px;
+  padding: 24px 16px;
 }
 
 .header {
@@ -12,16 +12,12 @@
 .header__date {
   color: #90a1b9;
   font-size: 15px;
-  line-height: 16px;
-  letter-spacing: -0.7px;
-}
+  line-height: 16px;}
 
 .header__title {
   font-size: 24px;
   font-weight: 700;
-  line-height: 28px;
-  letter-spacing: -0.7px;
-}
+  line-height: 28px;}
 
 .mainCard {
   width: 100%;
@@ -30,6 +26,7 @@
   border-radius: 16px;
   border: 0.791px solid #cad5e2;
   margin-bottom: 32px;
+  box-shadow: 0 2px 12px rgba(29, 43, 68, 0.05);
 }
 
 .mainCard__hero {
@@ -56,9 +53,7 @@
   color: #62748e;
   font-size: 18px;
   font-weight: 700;
-  line-height: 20px;
-  letter-spacing: -0.7px;
-}
+  line-height: 20px;}
 
 .mainCard__message {
   display: flex;
@@ -68,17 +63,13 @@
 .mainCard__title {
   font-size: 24px;
   font-weight: 700;
-  line-height: 24.75px;
-  letter-spacing: -0.7px;
-  word-break: keep-all;
+  line-height: 24.75px;  word-break: keep-all;
 }
 
 .mainCard__description {
   color: #62748e;
   font-size: 13px;
-  line-height: 19.5px;
-  letter-spacing: -0.7px;
-  width: 100%;
+  line-height: 19.5px;  width: 100%;
   margin-bottom: 15px;
 }
 
@@ -125,16 +116,12 @@
 .mainCard__summaryLabel {
   color: #90a1b9;
   font-size: 14px;
-  line-height: 16px;
-  letter-spacing: -0.7px;
-}
+  line-height: 16px;}
 
 .mainCard__summaryValue {
   font-size: 18px;
   font-weight: 700;
-  line-height: 20px;
-  letter-spacing: -0.7px;
-}
+  line-height: 20px;}
 
 .mainCard__summaryValue--available {
   color: #62748e;
@@ -150,9 +137,7 @@
 .mainCard__scheduledExpense {
   color: #90a1b9;
   font-size: 13px;
-  line-height: 16px;
-  letter-spacing: -0.7px;
-}
+  line-height: 16px;}
 
 .mainCard__detailBtn {
   display: flex;
@@ -162,9 +147,7 @@
   background: none;
   color: #90a1b9;
   font-size: 13px;
-  line-height: 16px;
-  letter-spacing: -0.7px;
-  cursor: pointer;
+  line-height: 16px;  cursor: pointer;
 }
 
 .expenseContainer {
@@ -183,18 +166,14 @@
   color: #314158;
   font-size: 16px;
   font-weight: 700;
-  line-height: 20px;
-  letter-spacing: -0.7px;
-}
+  line-height: 20px;}
 
 .expenseContainer__viewAll {
   border: none;
   background: none;
   color: #155dfc;
   font-size: 14px;
-  line-height: 20px;
-  letter-spacing: -0.7px;
-  cursor: pointer;
+  line-height: 20px;  cursor: pointer;
 }
 
 .expenseContainer__list {
@@ -203,6 +182,7 @@
   background: #ffffff;
   overflow: hidden;
   margin-bottom: 32px;
+  box-shadow: 0 2px 12px rgba(29, 43, 68, 0.05);
 }
 
 .expenseItem {
@@ -226,24 +206,18 @@
 .expenseItem__name {
   font-size: 15px;
   font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.7px;
-}
+  line-height: 20px;}
 
 .expenseItem__date {
   color: #90a1b9;
   font-size: 13px;
-  line-height: 16px;
-  letter-spacing: -0.7px;
-}
+  line-height: 16px;}
 
 .expenseItem__amount {
   color: #fb2c36;
   font-size: 15px;
   font-weight: 700;
-  line-height: 20px;
-  letter-spacing: -0.7px;
-}
+  line-height: 20px;}
 
 .chatBtn {
   border: none;
@@ -258,7 +232,6 @@
   text-align: center;
   font-size: 16px;
   font-weight: 700;
-  line-height: 20px;
-  letter-spacing: -0.7px;
-  cursor: pointer;
+  line-height: 20px;  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(29, 43, 68, 0.05);
 }
