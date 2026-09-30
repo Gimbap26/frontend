@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { AiIcon } from '../../assets/icons/index.jsx'
-import { EvidenceIcon } from './icons.jsx'
+import { EvidenceIcon, PlusIcon } from './icons.jsx'
 import sendIcon from '../../assets/icons/send.svg'
 import { useAgent } from '../../hooks/useAgent.js'
 
@@ -81,6 +82,8 @@ function TypingBubble() {
     <div className="flex items-start gap-[8px]">
       <BotAvatar />
       <div className="flex items-center gap-[4px] rounded-[16px] rounded-bl-[4px] bg-surface px-[16px] py-[14px] shadow-[0_2px_12px_rgba(29,43,68,0.05)]">
+        {/* 화면 낭독기에는 상태를 글로 알린다. */}
+        <span className="sr-only">답변을 작성하고 있어요</span>
         <span className="h-[6px] w-[6px] animate-bounce rounded-full bg-[#90A1B9] [animation-delay:-0.2s]" />
         <span className="h-[6px] w-[6px] animate-bounce rounded-full bg-[#90A1B9] [animation-delay:-0.1s]" />
         <span className="h-[6px] w-[6px] animate-bounce rounded-full bg-[#90A1B9]" />
@@ -154,21 +157,66 @@ function SuggestionRow({ suggestions, disabled, onPick }) {
 }
 
 function Ai() {
-  const { messages, suggestions, sending, send } = useAgent()
+  const { messages, suggestions, sending, send, reset } = useAgent()
+  // 인사말만 있는 상태는 "아직 대화 전"으로 본다. (새 대화 버튼을 숨긴다)
+  const hasConversation = messages.length > 1
   const [input, setInput] = useState('')
   const scrollRef = useRef(null)
+  const inputRef = useRef(null)
 
-  // 새 메시지/로딩 상태 변화 시 맨 아래로 스크롤
+  // 다른 화면(일정의 빠른 질문 칩)에서 넘어온 질문. 진입 직후 한 번만 보낸다.
+  const { pathname, state } = useLocation()
+  const navigate = useNavigate()
+  const pendingQuestion = useRef(state?.question ?? null)
+
+  /*
+   * 새 메시지가 오면 아래로 스크롤한다.
+   * 단 사용자가 위쪽 과거 대화를 읽고 있을 때는 끌어내리지 않는다.
+   * (내가 방금 질문을 보낸 경우에는 답을 봐야 하니 항상 내린다)
+   */
   useEffect(() => {
     const el = scrollRef.current
-    if (el) el.scrollTop = el.scrollHeight
+    if (!el) return
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80
+    if (nearBottom || sending) el.scrollTop = el.scrollHeight
   }, [messages, sending])
+
+  useEffect(() => {
+    const question = pendingQuestion.current
+    if (!question) return
+    // 먼저 비워서 같은 질문이 다시 전송되지 않게 한다.
+    pendingQuestion.current = null
+    // 새로고침하면 history 에 남은 state 로 같은 질문이 또 전송되므로 state 를 비운다.
+    navigate(pathname, { replace: true, state: null })
+    send(question)
+  }, [send, navigate, pathname])
+
+  /*
+   * 답변이 끝나면 바로 이어서 물어볼 수 있게 입력창에 포커스를 돌려준다.
+   * 화면에 들어온 직후에는 포커스를 주지 않는다. 모바일에서 키보드가 바로 올라오기 때문이다.
+   * (전송 중 -> 완료로 바뀌는 순간에만 돌려준다)
+   */
+  const wasSending = useRef(false)
+  useEffect(() => {
+    if (wasSending.current && !sending) inputRef.current?.focus()
+    wasSending.current = sending
+  }, [sending])
 
   function handleSubmit(event) {
     event.preventDefault()
     if (!input.trim() || sending) return
     send(input)
     setInput('')
+  }
+
+  /*
+   * 한글 입력 중(IME 조합 중) 엔터는 조합을 끝내는 키라서 전송하지 않는다.
+   * 이 처리가 없으면 마지막 글자가 잘리거나 같은 질문이 두 번 나갈 수 있다.
+   */
+  function handleKeyDown(event) {
+    if (event.key === 'Enter' && event.nativeEvent.isComposing) {
+      event.preventDefault()
+    }
   }
 
   function handleSuggestion(text) {
@@ -180,16 +228,39 @@ function Ai() {
     <div className="flex h-full flex-col bg-canvas">
       {/* 헤더 */}
       <header className="shrink-0 bg-surface px-[20px] pt-[48px] pb-[16px]">
-        <h1 className="text-[18px] font-bold leading-[24px] tracking-[-0.7px] text-[#0F172B]">
-          AI 분석 에이전트
-        </h1>
-        <p className="mt-[2px] text-[12px] leading-[16px] tracking-[-0.7px] text-[#90A1B9]">
-          금융 데이터 기반 맞춤 분석
-        </p>
+        <div className="flex items-start justify-between gap-[10px]">
+          <div className="min-w-0">
+            <h1 className="text-[18px] font-bold leading-[24px] tracking-[-0.7px] text-[#0F172B]">
+              AI 분석 에이전트
+            </h1>
+            <p className="mt-[2px] text-[12px] leading-[16px] tracking-[-0.7px] text-[#90A1B9]">
+              금융 데이터 기반 맞춤 분석
+            </p>
+          </div>
+
+          {/* 대화를 시작한 뒤에만 보인다. 누르면 지금 대화를 비우고 새로 시작한다. */}
+          {hasConversation && (
+            <button
+              type="button"
+              onClick={reset}
+              disabled={sending}
+              className="mt-[3px] flex shrink-0 items-center gap-[5px] rounded-full border-[0.791px] border-[#DBEAFE] bg-[#EFF6FF] px-[11px] py-[6px] text-[12px] font-semibold leading-[16px] tracking-[-0.7px] text-[#1447E6] transition-colors hover:border-[#BFDBFE] hover:bg-[#DBEAFE] active:scale-[0.97] disabled:opacity-45"
+            >
+              <PlusIcon size={12} />
+              새 대화
+            </button>
+          )}
+        </div>
       </header>
 
-      {/* 대화 영역 (스크롤) */}
-      <div ref={scrollRef} className="no-scrollbar flex-1 overflow-y-auto px-[16px] py-[16px]">
+      {/* 대화 영역 (스크롤). 새 답변을 화면 낭독기가 읽을 수 있게 log 로 알린다. */}
+      <div
+        ref={scrollRef}
+        role="log"
+        aria-live="polite"
+        aria-label="AI 대화"
+        className="no-scrollbar flex-1 overflow-y-auto px-[16px] py-[16px]"
+      >
         <div className="flex flex-col gap-[16px]">
           {messages.map((message) => (
             <MessageBubble key={message.id} message={message} />
@@ -207,11 +278,15 @@ function Ai() {
       <div className="shrink-0 border-t border-[#F1F5F9] bg-white px-[16px] py-[12px]">
         <form onSubmit={handleSubmit} className="flex items-center gap-[8px]">
           <input
+            ref={inputRef}
             type="text"
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            placeholder="이번 달 금융에 대해 물어보세요"
-            className="h-[44px] flex-1 rounded-full bg-[#F1F5F9] px-[18px] text-[14px] tracking-[-0.7px] text-ink placeholder:text-[#90A1B9] focus:outline-none"
+            onKeyDown={handleKeyDown}
+            disabled={sending}
+            aria-label="질문 입력"
+            placeholder={sending ? '답변을 기다리고 있어요' : '이번 달 금융에 대해 물어보세요'}
+            className="h-[44px] flex-1 rounded-full bg-[#F1F5F9] px-[18px] text-[14px] tracking-[-0.7px] text-ink placeholder:text-[#90A1B9] focus:outline-none disabled:text-[#90A1B9]"
           />
           <button
             type="submit"

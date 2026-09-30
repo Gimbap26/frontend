@@ -109,3 +109,31 @@ export function IncomeArrowDown({ size = 16 }) {
 }
 
 
+
+
+
+/*
+ * 계좌 간 이체 (⇄). 수입도 지출도 아닌 거래에 쓴다.
+ */
+export function TransferIcon({ size = 16 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" {...strokeProps} strokeWidth={1.33232} xmlns="http://www.w3.org/2000/svg">
+      <path d="M2.67 5.33H13.33" />
+      <path d="M11.33 3.33L13.33 5.33L11.33 7.33" />
+      <path d="M13.33 10.67H2.67" />
+      <path d="M4.67 8.67L2.67 10.67L4.67 12.67" />
+    </svg>
+  )
+}
+
+/*
+ * 다시 불러오기 (새로고침). 자산 헤더와 일정 리포트에서 함께 쓴다.
+ */
+export function RefreshIcon({ size = 13 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...strokeProps} strokeWidth={1.8} xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 11a8 8 0 10-2.3 5.7" />
+      <path d="M20 4v7h-7" />
+    </svg>
+  )
+}

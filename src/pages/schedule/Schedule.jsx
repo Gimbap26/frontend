@@ -1,226 +1,219 @@
 import { useMemo, useState } from 'react'
 import AsyncBoundary from '../../components/AsyncBoundary.jsx'
-import { ExpenseArrowUp, IncomeArrowDown, WarningIcon } from '../../assets/icons/index.jsx'
-import { PreviousMonthButton, NextMonthButton } from './icons.jsx'
-import { useFinancialEvents, useScheduleAlerts } from '../../hooks/useSchedule.js'
-import { formatSignedWon } from '../../utils/format.js'
+import CalendarCard from './CalendarCard.jsx'
+import DayDetailCard from './DayDetailCard.jsx'
+import QuickPrompts from './QuickPrompts.jsx'
+import WeatherReportCard from './WeatherReportCard.jsx'
+import SpendingSimulator from './SpendingSimulator.jsx'
+import {
+  buildCalendarDays,
+  buildMilestones,
+  daysBetween,
+  findNextPayday,
+  groupEventsByDate,
+  parseMonth,
+  toIso,
+  weatherForDay,
+  WEATHER_SUMMARY,
+} from './scheduleModel.js'
+import {
+  useFinancialEvents,
+  useMonthlyForecast,
+  useScheduleAlerts,
+  useSpendingOptimizations,
+  useSpendingPlan,
+} from '../../hooks/useSchedule.js'
+import { useAgentSuggestions } from '../../hooks/useAgent.js'
+import { useToday } from '../../hooks/useToday.js'
+import { formatShortDate } from '../../utils/format.js'
 
 /*
- * 일정 화면. (피그마 시안 기준)
- * 월 단위 달력에 금융 이벤트가 있는 날을 점으로 표시한다.
- *  - 지출: 빨간 점, 수입: 초록 점 (한 날짜에 둘 다 있으면 점 2개)
- * 날짜를 선택하면 그 날의 일정과 금융 주의 안내를 아래에 보여준다.
- * 요일은 월요일부터 시작한다.
+ * 일정 화면. (자금 기상도 시안 기준)
+ *
+ * 별도 화면 제목(헤더) 없이 달력 카드부터 시작한다.
+ *
+ * 구성
+ *  1) 달력 카드 - 날짜별 자금 날씨 이모지 + 예정 이벤트 점 + 이번 달 주요 지점
+ *  2) 선택한 날짜 상세 - 그날의 자금 기상, 일정, 주의 안내
+ *  3) AI 빠른 질문 - 누르면 AI 화면으로 질문을 넘긴다
+ *  4) 기상청 AI 리포트 - 급여일까지 하루 권장 자유 지출 (갱신 가능)
+ *  5) 지출 최적화 시뮬레이터 - 절감 옵션을 켜면 리포트 금액과 날씨가 함께 바뀐다
+ *
+ * 날짜 기준
+ *  - 오늘은 useToday() 로 받아 자정이 지나면 자동으로 넘어간다.
+ *  - 사용자가 직접 고르지 않은 동안 선택 날짜와 표시 월은 오늘을 따라간다.
+ *  - 달력에서 월을 넘기면 그 달의 이벤트/예측을 다시 조회한다.
  */
 
-// 월요일 시작 요일 라벨
-const WEEKDAYS = ['월', '화', '수', '목', '금', '토', '일']
-const TODAY = '2026-09-01'
-
-// "2026-09-01" -> { year, month(0기준) }
-function parseMonth(iso) {
-  const [year, month] = iso.split('-').map(Number)
-  return { year, month: month - 1 }
-}
-
-// year, month(0기준), day -> "2026-09-25"
-function toIso(year, month, day) {
-  const mm = String(month + 1).padStart(2, '0')
-  const dd = String(day).padStart(2, '0')
-  return `${year}-${mm}-${dd}`
-}
-
-// getDay()(일=0)를 월요일 시작 인덱스(월=0)로 변환
-function toMondayIndex(weekday) {
-  return (weekday + 6) % 7
-}
-
-// 금융 이벤트를 날짜별로 묶는다.
-function groupEventsByDate(items) {
-  const map = new Map()
-  for (const item of items) {
-    if (!map.has(item.date)) map.set(item.date, [])
-    map.get(item.date).push(item)
-  }
-  return map
+// { year, month(0기준) } -> "2026-09" (조회용 기준월 문자열)
+function toMonthKey({ year, month }) {
+  return `${year}-${String(month + 1).padStart(2, '0')}`
 }
 
 function Schedule() {
-  const [view, setView] = useState(() => parseMonth(TODAY)) // 현재 보고 있는 월
-  const [selected, setSelected] = useState('2026-09-25') // 선택된 날짜 (시안 기본값)
+  const today = useToday()
 
-  const { events, loading, error } = useFinancialEvents()
-  const { alerts } = useScheduleAlerts()
+  const [pickedDate, setPickedDate] = useState(null)
+  const [pickedMonth, setPickedMonth] = useState(null)
+  // 시뮬레이터에서 켠 절감 옵션. 리포트 금액도 이 값을 함께 반영한다.
+  const [pickedOptions, setPickedOptions] = useState([])
+
+  const selected = pickedDate ?? today
+  const view = pickedMonth ?? parseMonth(today)
+  const viewMonth = toMonthKey(view)
+
+  // 달력에 보이는 달의 데이터를 조회한다. (월을 넘기면 그 달로 다시 조회)
+  const { events, loading: eventsLoading, error: eventsError } = useFinancialEvents(viewMonth)
+  const { forecast, balanceByDate, loading: forecastLoading, error: forecastError } = useMonthlyForecast(viewMonth)
+  const { alerts } = useScheduleAlerts(viewMonth)
+  // 리포트/시뮬레이터는 보고 있는 달과 무관하게 "현재 기준" 계획을 쓴다.
+  const { plan, spendablePool, loading: planLoading, error: planError, refetch: refetchPlan } = useSpendingPlan()
+  const { options } = useSpendingOptimizations()
+  const { suggestions } = useAgentSuggestions()
+
+  const loading = eventsLoading || forecastLoading || planLoading
+  const error = eventsError ?? forecastError ?? planError
+
+  /*
+   * 첫 진입에만 전체 로딩 화면을 보여준다.
+   * 계획 데이터는 조회될 때마다 갱신 시각이 채워지므로, 그 값이 아직 없으면 첫 로딩으로 본다.
+   * 덕분에 월을 넘기거나 리포트를 갱신할 때 화면이 통째로 사라지지 않고 조용히 바뀐다.
+   */
+  const firstLoad = loading && !plan.updatedAt
 
   const eventsByDate = useMemo(() => groupEventsByDate(events), [events])
 
-  // 달력 그리드 (월요일 시작 기준 앞쪽 빈칸 + 날짜들)
-  const cells = useMemo(() => {
-    const firstWeekday = toMondayIndex(new Date(view.year, view.month, 1).getDay())
-    const daysInMonth = new Date(view.year, view.month + 1, 0).getDate()
-    const result = Array.from({ length: firstWeekday }, () => null)
-    for (let day = 1; day <= daysInMonth; day += 1) result.push(day)
-    return result
-  }, [view])
+  const days = useMemo(
+    () =>
+      buildCalendarDays({
+        year: view.year,
+        month: view.month,
+        eventsByDate,
+        balanceByDate,
+        minimumBalanceDate: forecast.minimumBalanceDate,
+      }),
+    [view.year, view.month, eventsByDate, balanceByDate, forecast.minimumBalanceDate],
+  )
 
+  const milestones = useMemo(() => buildMilestones({ events, forecast }), [events, forecast])
+
+  /*
+   * 급여일까지 남은 일수. D-day 배지와 하루 권장 지출이 같은 값을 쓴다.
+   * 목 모드에서는 시안 기준(23일)이 계획 데이터에 들어 있어 그 값을 그대로 쓰고,
+   * 백엔드가 붙으면 daysUntilPayday 가 비어 있으므로 (급여일 - 오늘)로 계산한다.
+   */
+  const payday = useMemo(() => findNextPayday(events, today), [events, today])
+  const daysLeft = plan.daysUntilPayday ?? (payday ? daysBetween(today, payday) : 0)
+
+  // 절감 옵션을 켠 만큼 하루 권장 지출이 올라간다. (리포트와 시뮬레이터가 같은 값을 본다)
+  const savings = options
+    .filter((option) => pickedOptions.includes(option.id))
+    .reduce((sum, option) => sum + option.saving, 0)
+  const baseDailyBudget = Math.round(spendablePool / Math.max(daysLeft, 1))
+  const dailyBudget = Math.round((spendablePool + savings) / Math.max(daysLeft, 1))
+
+  // 선택한 날짜 정보
   const selectedItems = eventsByDate.get(selected) ?? []
-  const selectedAlert = alerts[selected]
+  const selectedBalance = balanceByDate.get(selected)
+  const selectedWeather = weatherForDay({
+    items: selectedItems,
+    balance: selectedBalance,
+    isMinimumDate: selected === forecast.minimumBalanceDate,
+  })
 
-  function moveMonth(delta) {
-    setView((prev) => {
-      const next = new Date(prev.year, prev.month + delta, 1)
-      return { year: next.getFullYear(), month: next.getMonth() }
-    })
+  // 카드 헤더 부제: 이번 달 종합 판정 + 최저 수위 날짜
+  const summary = forecast.weather
+    ? [
+        `자금 기상도 • ${WEATHER_SUMMARY[forecast.weather]}`,
+        forecast.minimumBalanceDate ? `최저 수위 ${formatShortDate(forecast.minimumBalanceDate)}` : null,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : '이 달의 예측 데이터가 아직 없어요'
+
+  // 날짜를 고르면 그 날짜가 속한 달로 함께 이동한다. (이전/다음 달 칸, 주요 지점 카드 클릭)
+  function selectDate(iso) {
+    const target = parseMonth(iso)
+    const todayMonth = parseMonth(today)
+    const isTodayMonth = target.year === todayMonth.year && target.month === todayMonth.month
+    setPickedMonth(isTodayMonth ? null : target)
+    // 오늘을 고른 경우엔 "오늘 따라가기" 상태로 되돌린다.
+    setPickedDate(iso === today ? null : iso)
   }
 
-  // 해당 날짜에 어떤 타입의 이벤트가 있는지 (점 표시용)
-  function eventDots(iso) {
-    const items = eventsByDate.get(iso) ?? []
-    return {
-      hasExpense: items.some((item) => item.type === 'expense'),
-      hasIncome: items.some((item) => item.type === 'income'),
+  // 월 이동. 선택 날짜도 같은 달로 옮겨서 상세 카드가 달력과 어긋나지 않게 한다.
+  function moveMonth(delta) {
+    const base = pickedMonth ?? parseMonth(today)
+    const next = new Date(base.year, base.month + delta, 1)
+    const target = { year: next.getFullYear(), month: next.getMonth() }
+    const todayMonth = parseMonth(today)
+
+    if (target.year === todayMonth.year && target.month === todayMonth.month) {
+      // 오늘이 있는 달로 돌아오면 오늘을 다시 선택한다.
+      setPickedMonth(null)
+      setPickedDate(null)
+      return
     }
+
+    // 같은 "일"을 유지하되, 그 달에 없는 날짜(31일 등)면 말일로 맞춘다.
+    const lastDay = new Date(target.year, target.month + 1, 0).getDate()
+    const day = Math.min(Number(selected.split('-')[2]), lastDay)
+    setPickedMonth(target)
+    setPickedDate(toIso(target.year, target.month, day))
+  }
+
+  function toggleOption(id) {
+    setPickedOptions((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]))
   }
 
   return (
-    <div className="flex min-h-full flex-col bg-[#F2F4F6]">
-      {/* 달력 (풀블리드 흰 배경) */}
-      <section className="bg-surface px-[20px] pt-[48px] pb-[16px]">
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => moveMonth(-1)}
-            className="flex h-[32px] w-[32px] items-center justify-center rounded-[10px] text-[#90A1B9] hover:bg-canvas"
-            aria-label="이전 달"
-          >
-            <PreviousMonthButton size={20} />
-          </button>
-          <p className="text-[16px] font-bold leading-[24px] tracking-[-0.7px] text-[#0F172B]">
-            {view.year}년 {view.month + 1}월
-          </p>
-          <button
-            type="button"
-            onClick={() => moveMonth(1)}
-            className="flex h-[32px] w-[32px] items-center justify-center rounded-[10px] text-[#90A1B9] hover:bg-canvas"
-            aria-label="다음 달"
-          >
-            <NextMonthButton size={20} />
-          </button>
-        </div>
+    <div className="flex min-h-full flex-col gap-[12px] bg-[#F2F4F6] px-[16px] pt-[24px] pb-[20px]">
+      {/* 첫 진입만 로딩/에러 화면으로 대체하고, 이후 재조회는 조용히 반영한다. */}
+      <AsyncBoundary loading={firstLoad} error={error}>
+        <>
+          <CalendarCard
+            view={view}
+            days={days}
+            selected={selected}
+            today={today}
+            milestones={milestones}
+            paydayInDays={payday ? daysLeft : null}
+            summary={summary}
+            onSelect={selectDate}
+            onMoveMonth={moveMonth}
+          />
 
-        {/* 요일 헤더 (월요일 시작) */}
-        <div className="mt-[16px] grid grid-cols-7 gap-[2px]">
-          {WEEKDAYS.map((weekday) => (
-            <div key={weekday} className="text-center text-[12px] font-medium leading-[16px] tracking-normal text-[#90A1B9]">
-              {weekday}
-            </div>
-          ))}
-        </div>
+          <DayDetailCard
+            selected={selected}
+            items={selectedItems}
+            alert={alerts[selected]}
+            weather={selectedWeather}
+            balance={selectedBalance}
+          />
 
-        {/* 날짜 그리드 */}
-        <div className="mt-[8px] grid grid-cols-7 gap-y-[6px]">
-          {cells.map((day, index) => {
-            if (day === null) return <div key={`empty-${index}`} />
-            const iso = toIso(view.year, view.month, day)
-            const { hasExpense, hasIncome } = eventDots(iso)
-            const isSelected = iso === selected
-            const isToday = iso === TODAY
-            return (
-              <div key={iso} className="flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => setSelected(iso)}
-                  className={`relative flex h-[44px] w-[44px] flex-col items-center justify-center rounded-[8px] text-[14px] leading-[14px] transition-colors ${
-                    isSelected
-                      ? 'bg-[#155DFC] font-bold text-white'
-                      : isToday
-                        ? 'bg-[#EFF6FF] font-bold text-[#155DFC]'
-                        : 'font-normal text-[#314158] hover:bg-canvas'
-                  }`}
-                >
-                  <span>{day}</span>
-                  {(hasExpense || hasIncome) && (
-                    <span className="absolute bottom-[6px] flex items-center gap-[4px]">
-                      {hasIncome && (
-                        <span className={`h-[6px] w-[6px] rounded-full ${isSelected ? 'bg-[#5EE9B5]' : 'bg-[#00BC7D]'}`} />
-                      )}
-                      {hasExpense && (
-                        <span className={`h-[6px] w-[6px] rounded-full ${isSelected ? 'bg-[#FFA2A2]' : 'bg-[#FF6467]'}`} />
-                      )}
-                    </span>
-                  )}
-                </button>
-              </div>
-            )
-          })}
-        </div>
-      </section>
+          <QuickPrompts prompts={suggestions} />
 
-      {/* 선택한 날짜의 일정 + 주의 안내 */}
-      <div className="flex flex-col gap-[16px] px-[16px] pt-[20px]">
-        <AsyncBoundary loading={loading} error={error}>
-          <section>
-            <h2 className="mb-[12px] text-[14px] font-bold leading-[20px] tracking-[-0.7px] text-[#314158]">
-              {view.month + 1}월 {Number(selected.split('-')[2])}일 일정
-            </h2>
+          <WeatherReportCard
+            plan={plan}
+            dailyBudget={dailyBudget}
+            baseDailyBudget={baseDailyBudget}
+            daysLeft={daysLeft}
+            refreshing={planLoading}
+            onRefresh={refetchPlan}
+          />
 
-            {selectedItems.length === 0 ? (
-              <div className="rounded-[18px] bg-surface p-[24px] text-center text-[13px] text-muted shadow-[0_2px_12px_rgba(29,43,68,0.05)]">
-                이 날은 예정된 일정이 없어요
-              </div>
-            ) : (
-              <div className="rounded-[18px] bg-surface px-[20px] shadow-[0_2px_12px_rgba(29,43,68,0.05)]">
-                {selectedItems.map((item, index) => {
-                  const isIncome = item.type === 'income'
-                  return (
-                    <div
-                      key={item.id}
-                      className={`flex items-center justify-between gap-[12px] py-[16px] ${
-                        index !== selectedItems.length - 1 ? 'border-b border-hairline' : ''
-                      }`}
-                    >
-                      <div className="flex min-w-0 items-center gap-[12px]">
-                        <div
-                          className={`flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full ${
-                            isIncome ? 'bg-[#ECFDF5] text-[#00BC7D]' : 'bg-[#FEF2F2] text-[#FB2C36]'
-                          }`}
-                        >
-                          {isIncome ? <IncomeArrowDown size={16} /> : <ExpenseArrowUp size={16} />}
-                        </div>
-                        <p className="truncate text-[14px] font-medium leading-[20px] tracking-[-0.7px] text-[#1D293D]">{item.title}</p>
-                      </div>
-                      <p
-                        className={`shrink-0 text-[14px] font-bold leading-[20px] tracking-[-0.7px] ${
-                          isIncome ? 'text-[#00BC7D]' : 'text-[#FB2C36]'
-                        }`}
-                      >
-                        {formatSignedWon(item.amount, item.type)}
-                      </p>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </section>
-        </AsyncBoundary>
-
-        {/* 금융 주의 안내 */}
-        {selectedAlert && (
-          <section className="flex items-start gap-[10px] rounded-[12px] border-[0.791px] border-[#FFCECC] bg-[#FFECEB] px-[16px] py-[12px]">
-            <span className="mt-[1px] text-[#FF5750]">
-              <WarningIcon size={14} />
-            </span>
-            <div>
-              <p className="text-[12px] font-bold leading-[16px] tracking-[-0.7px] text-[#FF5750]">{selectedAlert.title}</p>
-              {selectedAlert.lines.map((line) => (
-                <p key={line} className="mt-[2px] text-[12px] font-normal leading-[19.5px] tracking-[-0.7px] text-[#FF5750]">
-                  {line}
-                </p>
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
+          {options.length > 0 && (
+            <SpendingSimulator
+              options={options}
+              picked={pickedOptions}
+              onToggle={toggleOption}
+              dailyBudget={dailyBudget}
+              baseDailyBudget={baseDailyBudget}
+              baseWeather={forecast.weather}
+            />
+          )}
+        </>
+      </AsyncBoundary>
     </div>
   )
 }

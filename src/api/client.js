@@ -15,17 +15,41 @@ const DEV_USER_ID = import.meta.env.VITE_DEV_USER_ID ?? ''
 // 목데이터로 동작할지 여부. API 주소가 비어 있으면 목 모드로 본다.
 export const USE_MOCK = BASE_URL === ''
 
+/*
+ * 응답 대기 상한. 서버가 응답하지 않을 때 화면이 로딩 상태로 멈춰 있는 걸 막는다.
+ * 시간이 지나면 요청을 중단하고 에러로 처리하며, 호출부의 폴백(목데이터)이 동작한다.
+ * AI 답변처럼 오래 걸리는 요청은 호출부에서 timeoutMs 를 늘려 쓴다.
+ */
+const DEFAULT_TIMEOUT = 15_000
+
 // 공통 fetch 래퍼. JSON 응답을 파싱하고 에러를 표준화한다.
 export async function request(path, options = {}) {
-  const response = await fetch(`${BASE_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      // 개발용 사용자 헤더. 값이 있을 때만 붙인다.
-      ...(DEV_USER_ID ? { 'X-User-Id': DEV_USER_ID } : {}),
-      ...options.headers,
-    },
-    ...options,
-  })
+  const { timeoutMs = DEFAULT_TIMEOUT, ...fetchOptions } = options
+
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+
+  let response
+  try {
+    response = await fetch(`${BASE_URL}${path}`, {
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        // 개발용 사용자 헤더. 값이 있을 때만 붙인다.
+        ...(DEV_USER_ID ? { 'X-User-Id': DEV_USER_ID } : {}),
+        ...fetchOptions.headers,
+      },
+      ...fetchOptions,
+    })
+  } catch (error) {
+    // 중단된 요청은 사유를 분명히 남긴다. (네트워크 오류와 구분)
+    if (error?.name === 'AbortError') {
+      throw new Error(`요청 시간 초과 (${timeoutMs}ms) ${path}`)
+    }
+    throw error
+  } finally {
+    clearTimeout(timer)
+  }
 
   if (!response.ok) {
     throw new Error(`요청 실패 (${response.status}) ${path}`)
@@ -64,12 +88,23 @@ export async function withFallback(apiCall, fallbackData) {
   }
 }
 
+// 오늘이 속한 달을 "YYYY-MM" 으로. (로컬 기준)
+function currentMonthKey() {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+}
+
 /*
- * 조회 기준월. 백엔드 시드/시연 데이터가 2026-09 기준이라 그 달을 본다.
- * 실서비스 전환 시 현재 월(new Date()) 기준으로 바꾸면 된다.
- * VITE_BASE_MONTH 로 재정의할 수 있다. (형식: "YYYY-MM")
+ * 조회 기준월. 기본은 오늘이 속한 달이라, 달이 바뀌면 자산·거래·일정 화면이 함께 넘어간다.
+ *
+ * VITE_BASE_MONTH 로 특정 달에 고정할 수 있다. (형식: "YYYY-MM")
+ * 백엔드 시드 데이터가 특정 달(예: 2026-09)에만 있어서 그 달을 봐야 할 때 쓴다.
+ * 고정해 두면 오늘이 다른 달이어도 화면은 계속 그 달을 보여주니, 시연이 끝나면 지우는 게 좋다.
+ *
+ * 앱을 켜 둔 상태로 자정이 지나는 경우는 새로고침할 때 반영된다.
+ * (일정 화면의 달력·오늘 표시는 useToday() 로 실시간 갱신된다)
  */
-export const BASE_MONTH = import.meta.env.VITE_BASE_MONTH ?? '2026-09'
+export const BASE_MONTH = import.meta.env.VITE_BASE_MONTH || currentMonthKey()
 
 // 기준월의 시작일/종료일을 ISO 문자열로 돌려준다.
 //  "2026-09" -> { from: "2026-09-01", to: "2026-09-30" }

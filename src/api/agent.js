@@ -10,11 +10,8 @@
  */
 
 import { USE_MOCK, request, withFallback, mockResponse } from './client.js'
-import {
-  agentSuggestions,
-  agentMockAnswers,
-  agentDefaultAnswer,
-} from '../data/mockData.js'
+import { agentDefaultAnswer } from '../data/mockData.js'
+import { buildAgentAnswers, buildAgentSuggestions } from '../data/mockMonth.js'
 
 // 백엔드 answer 응답 -> 프론트 assistant 메시지로 정규화
 //  { conversationId, messageId, answer, provider, sources } 등
@@ -43,21 +40,42 @@ function mapStoredMessage(msg) {
 }
 
 // 추천 질문 목록
+// 목 질문은 "이번 달 급여일"을 넣어 만들기 때문에 지난 날짜가 남지 않는다.
 export function fetchSuggestions() {
   return withFallback(
     () => request('/agent/suggestions').then((data) => data?.suggestions ?? []),
-    agentSuggestions,
+    buildAgentSuggestions(),
   )
+}
+
+/*
+ * 목 모드에서 만든 대화 id 는 접두사로 구분한다.
+ * 백엔드에는 없는 id 라, 실제 서버에 붙은 뒤에는 이 id 를 쓰면 안 된다.
+ */
+export const MOCK_CONVERSATION_PREFIX = 'mock-'
+
+export function isMockConversationId(id) {
+  return typeof id === 'string' && id.startsWith(MOCK_CONVERSATION_PREFIX)
 }
 
 // 대화 세션 생성. conversationId 를 돌려준다.
 // 목 모드에서는 임시 id 를 준다.
 export function createConversation(title = '금융 상담') {
-  if (USE_MOCK) return mockResponse({ conversationId: `mock-${Date.now()}` })
+  if (USE_MOCK) return mockResponse({ conversationId: `${MOCK_CONVERSATION_PREFIX}${Date.now()}` })
   return request('/agent/conversations', {
     method: 'POST',
     body: JSON.stringify({ title }),
   })
+}
+
+/*
+ * 백엔드에 보낼 conversationId 로 정규화한다.
+ * 명세는 숫자(Long)인데 localStorage 에서 읽으면 문자열이라 "1" 로 나가기 때문이다.
+ * 목 id 나 빈 값은 null 로 만들어, 서버가 새 대화로 처리하게 한다.
+ */
+function normalizeConversationId(id) {
+  if (id == null || isMockConversationId(id)) return null
+  return /^\d+$/.test(String(id)) ? Number(id) : id
 }
 
 // 대화 메시지 목록 조회
@@ -71,18 +89,45 @@ export function fetchMessages(conversationId) {
   )
 }
 
-// 질문 전송 -> AI 답변 메시지(정규화) 반환
-export function sendChat(conversationId, message) {
+// AI 답변은 계산/모델 호출이 있어 일반 조회보다 오래 걸린다.
+const CHAT_TIMEOUT = 45_000
+
+// 실제 서버에 질문을 보낸다.
+function postChat(conversationId, message) {
+  return request('/agent/chat', {
+    method: 'POST',
+    body: JSON.stringify({ conversationId, message }),
+    timeoutMs: CHAT_TIMEOUT,
+  }).then(mapAnswerToMessage)
+}
+
+/*
+ * 질문 전송 -> AI 답변 메시지(정규화) 반환.
+ *
+ * 저장해 둔 대화 id 가 서버에 없을 수 있다.
+ * (목 모드에서 만든 id 가 남아 있거나, 서버 데이터가 초기화된 경우)
+ * 그때 그냥 목 답변으로 떨어지면 백엔드가 붙어 있는데도 가짜 답변이 나가므로,
+ * 새 대화를 만들어 한 번 더 시도한 뒤에야 목 답변으로 폴백한다.
+ */
+export async function sendChat(conversationId, message) {
   // 목 답변: 질문 문구에 매칭되는 게 있으면 그걸, 없으면 기본 답변
-  const mock = agentMockAnswers[message?.trim()] ?? agentDefaultAnswer
+  const mock = buildAgentAnswers()[message?.trim()] ?? agentDefaultAnswer
   const mockMessage = mapAnswerToMessage({ ...mock, conversationId })
 
-  return withFallback(
-    () =>
-      request('/agent/chat', {
-        method: 'POST',
-        body: JSON.stringify({ conversationId, message }),
-      }).then(mapAnswerToMessage),
-    mockMessage,
-  )
+  if (USE_MOCK) return mockResponse(mockMessage)
+
+  const normalizedId = normalizeConversationId(conversationId)
+
+  try {
+    return await postChat(normalizedId, message)
+  } catch (firstError) {
+    console.warn('[api] 대화 전송 실패, 새 대화로 다시 시도합니다.', firstError)
+    try {
+      const created = await createConversation()
+      return await postChat(created?.conversationId ?? null, message)
+    } catch (retryError) {
+      console.warn('[api] 대화 전송 재시도도 실패, 목데이터로 대체합니다.', retryError)
+      return mockResponse(mockMessage)
+    }
+  }
 }

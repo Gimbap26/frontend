@@ -34,3 +34,44 @@ export function formatDateWithWeekday(isoDate) {
   const date = new Date(`${isoDate}T00:00:00`)
   return `${date.getMonth() + 1}월 ${date.getDate()}일 (${WEEKDAYS[date.getDay()]})`
 }
+
+// Date -> "2026-09-21" (로컬 시간 기준. toISOString() 은 UTC 라서 날짜가 밀릴 수 있다)
+export function toIsoDate(date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+// "2026-09-05" -> "9/5"
+export function formatSlashDate(isoDate) {
+  const [, month, day] = isoDate.split('-').map(Number)
+  return `${month}/${day}`
+}
+
+/*
+ * 만원 단위 축약. 좁은 카드에 큰 금액을 넣을 때 사용한다.
+ *  520000 -> "52만", 1691000 -> "169.1만", -300000 -> "-30만"
+ * 소수가 남을 때만 첫째 자리까지 표기한다.
+ */
+export function formatManwon(amount) {
+  const sign = amount < 0 ? '-' : ''
+  const rounded = Math.round((Math.abs(amount) / 10_000) * 10) / 10
+  return `${sign}${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}만`
+}
+
+// 수입/지출 부호를 붙인 만원 표기. income -> "+280만", expense -> "-52만"
+export function formatSignedManwon(amount, type) {
+  const sign = type === 'income' ? '+' : '-'
+  return `${sign}${formatManwon(Math.abs(amount))}`
+}
+
+// "2026-09-21T10:42:00" -> "오전 10:42"
+export function formatClockTime(isoDateTime) {
+  const date = new Date(isoDateTime)
+  const hours = date.getHours()
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const meridiem = hours < 12 ? '오전' : '오후'
+  const hour12 = hours % 12 === 0 ? 12 : hours % 12
+  return `${meridiem} ${hour12}:${minutes}`
+}
