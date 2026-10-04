@@ -8,7 +8,7 @@ import { formatWon } from '../../utils/format.js'
  *
  * 켠 옵션 상태와 금액 계산은 Schedule 이 갖고 있다.
  * 같은 값을 위쪽 AI 리포트도 쓰기 때문에, 토글을 켜면 리포트 금액도 함께 바뀐다.
- * 날씨는 켠 개수만큼 등급 사다리를 올린다. (STORM → RAINY → CLOUDY → FAIR → SUNNY)
+ * 날씨는 켠 개수만큼 등급 사다리를 올린다. (STORM → RAINY → CLOUDY → SUNNY)
  *
  * 백엔드 연결 시 POST /available-funds/simulations 결과로 대체할 수 있다.
  */
@@ -101,7 +101,7 @@ function SpendingSimulator({ options, picked, onToggle, dailyBudget, baseDailyBu
           <span className="text-[20px] leading-none">{WEATHER[weather]?.emoji ?? '☁️'}</span>
           <div className="min-w-0">
             <p className="truncate text-[12px] font-bold leading-[16px] text-[#1D293D]">
-              {steps === 0 ? '현재' : '예상 날씨'}: {WEATHER_SUMMARY[weather] ?? '구름 많음 (흐림)'}
+              {steps === 0 ? '현재' : '예상 날씨'}: {WEATHER_SUMMARY[weather] ?? '구름'}
             </p>
             <p className="truncate text-[11px] font-medium leading-[16px] text-[#62748E]">
               {steps === 0

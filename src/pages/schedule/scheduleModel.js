@@ -12,47 +12,53 @@
 
 /*
  * 자금 날씨 등급.
- * 백엔드(ForecastService)는 SUNNY / CLOUDY / RAINY / STORM 4단계를 주고,
- * FAIR(양호)는 프론트가 잔액 여유도로 한 단계 더 나눈 표시용 등급이다.
- * PAYDAY 는 등급이 아니라 "급여 입금일" 표시용이라 사다리에서 제외한다.
+ *
+ * 날씨 탭(4단계)과 일치하도록 맞췄다: 맑음 / 구름 / 비 / 폭풍
+ *  - SUNNY(맑음): 잔액 여유가 충분한 구간
+ *  - CLOUDY(구름): 잔액이 기준치에 근접한 주의 구간
+ *  - RAINY(비): 당일 지출이 집중돼 여유 자금이 부족할 수 있는 날
+ *  - STORM(폭풍): 잔액이 가장 낮아지는 최저점 구간
+ *
+ * FAIR 는 제거했다. 날씨 탭에 없는 단계라 두 화면이 달랐기 때문이다.
+ * 기존에 FAIR 를 표시하던 구간(중간 잔액)은 CLOUDY 로 흡수된다.
+ *
+ * PAYDAY 는 등급이 아니라 "급여 입금일" 전용 표시이므로 사다리에서 제외한다.
  */
 export const WEATHER = {
-  SUNNY: { emoji: '☀️', label: '여유' },
-  FAIR: { emoji: '🌤️', label: '양호' },
-  CLOUDY: { emoji: '☁️', label: '주의' },
-  RAINY: { emoji: '🌧️', label: '지출집중' },
-  STORM: { emoji: '⛈️', label: '최저수위' },
+  SUNNY: { emoji: '☀️', label: '맑음' },
+  CLOUDY: { emoji: '☁️', label: '구름' },
+  RAINY: { emoji: '🌧️', label: '비' },
+  STORM: { emoji: '⛈️', label: '폭풍' },
   PAYDAY: { emoji: '🌟', label: '입금' },
 }
 
 // 나쁨 -> 좋음 순서. 시뮬레이터가 단계를 올릴 때 이 순서를 따른다.
-const WEATHER_LADDER = ['STORM', 'RAINY', 'CLOUDY', 'FAIR', 'SUNNY']
+const WEATHER_LADDER = ['STORM', 'RAINY', 'CLOUDY', 'SUNNY']
 
 /*
- * 달력 아래 범례에 보여줄 항목. 잔액 여유도 3단계만 둔다.
- * 지출 집중(🌧️) / 최저수위(⛈️) / 입금(🌟)은 바로 아래 주요 지점 카드가
- * 날짜·금액과 함께 설명하므로 범례에서는 빼서 중복을 없앤다.
+ * 달력 아래 범례. 날씨 탭의 4단계와 동일하게 맞췄다.
+ * 지출 집중(비)과 폭풍은 아래 주요 지점 카드가 설명하지만,
+ * 달력에 이모지로 표시되므로 범례에도 함께 두어 의미를 바로 알 수 있게 한다.
+ * 입금(🌟)은 날씨 등급이 아니라 별도 표시라 범례에서 제외한다.
  */
-export const WEATHER_LEGEND = ['SUNNY', 'FAIR', 'CLOUDY']
+export const WEATHER_LEGEND = ['SUNNY', 'CLOUDY', 'RAINY', 'STORM']
 
 // 종합 판정 문구. 시뮬레이터 결과 박스와 카드 부제에서 쓴다.
+// 날씨 탭 라벨을 그대로 쓴다.
 export const WEATHER_SUMMARY = {
-  SUNNY: '쾌청 맑음',
-  FAIR: '구름 조금 (양호)',
-  CLOUDY: '구름 많음 (흐림)',
-  RAINY: '비 (지출 집중)',
-  STORM: '폭풍 (잔액 위험)',
+  SUNNY: '맑음',
+  CLOUDY: '구름',
+  RAINY: '비',
+  STORM: '폭풍',
 }
 
-// 하루 지출 합계가 이 금액을 넘으면 "지출 집중일"로 본다.
+// 하루 지출 합계가 이 금액을 넘으면 "지출 집중일(RAINY)"로 본다.
 const HEAVY_SPENDING = 200_000
 
 /*
- * 잔액 여유도 임계값. 백엔드가 날짜별 weather 를 주기 시작하면 그 값으로 대체하면 된다.
- * 이 기준이 낮으면 달력이 온통 맑음이 되므로, 고정 지출을 다 빼고도 여유가 있는
- * 구간만 맑음/양호로 보고 나머지는 흐림으로 둔다.
+ * 잔액 여유도 임계값.
+ * 백엔드가 날짜별 weather 를 주면 이 상수를 제거하고 그 값으로 대체한다.
  */
-const BALANCE_FAIR = 1_700_000
 const BALANCE_SUNNY = 2_300_000
 
 // 일요일 시작 요일 라벨 (참고 시안 기준)
@@ -89,7 +95,7 @@ export function groupEventsByDate(items) {
 }
 
 /*
- * 하루의 자금 날씨 판정.
+ * 하루의 자금 날씨 판정. 날씨 탭의 4단계(맑음/구름/비/폭풍)와 일치한다.
  * 우선순위: 급여 입금 > 최저 잔액일 > 지출 집중일 > 잔액 여유도
  * 잔액 정보가 없는 날(이전/다음 달 칸 등)은 null 을 돌려준다.
  */
@@ -104,8 +110,8 @@ export function weatherForDay({ items = [], balance, isMinimumDate = false }) {
   if (expenseTotal >= HEAVY_SPENDING) return 'RAINY'
 
   if (balance == null) return null
+  // FAIR 를 제거하고 SUNNY / CLOUDY 두 단계로 단순화했다. (날씨 탭과 동일)
   if (balance >= BALANCE_SUNNY) return 'SUNNY'
-  if (balance >= BALANCE_FAIR) return 'FAIR'
   return 'CLOUDY'
 }
 
@@ -171,25 +177,29 @@ export function buildCalendarDays({ year, month, eventsByDate, balanceByDate, mi
 
 /*
  * 이번 달 주요 지점 3개.
- *  - expense: 가장 큰 예정 지출일
- *  - minimum: 예상 잔액이 가장 낮은 날
+ *  - expense: 달력의 🌧️ 기준과 같은 날 — 하루 지출 합계가 가장 큰 날
+ *  - minimum: 예상 잔액이 가장 낮은 날 (forecasts.minimumBalanceDate)
  *  - income: 급여 등 가장 큰 예정 입금일
  * 해당 데이터가 없으면 그 항목은 빠진다. (카드 개수는 1~3개)
  */
 export function buildMilestones({ events, forecast }) {
   const milestones = []
 
-  const biggestExpense = events
-    .filter((item) => item.type === 'expense')
-    .sort((a, b) => b.amount - a.amount)[0]
-  if (biggestExpense) {
+  // 날짜별 지출 합계를 구해 가장 많은 날을 고른다.
+  // → 달력의 🌧️(RAINY: 하루 합계 ≥ HEAVY_SPENDING) 기준과 일치한다.
+  const expenseByDate = new Map()
+  for (const item of events) {
+    if (item.type !== 'expense') continue
+    expenseByDate.set(item.date, (expenseByDate.get(item.date) ?? 0) + item.amount)
+  }
+  if (expenseByDate.size > 0) {
+    const [topDate, topAmount] = [...expenseByDate.entries()].sort((a, b) => b[1] - a[1])[0]
     milestones.push({
       key: 'expense',
       tone: 'expense',
-      date: biggestExpense.date,
-      // 달력의 🌧️ 표시와 짝이 되는 카드라 항목명 대신 판정 이름을 쓴다.
+      date: topDate,
       title: '지출 집중',
-      amount: biggestExpense.amount,
+      amount: topAmount,
       kind: 'expense',
     })
   }

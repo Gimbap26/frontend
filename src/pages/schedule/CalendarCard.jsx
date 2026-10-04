@@ -16,10 +16,11 @@ function cellClass({ inMonth, isSelected, isToday, weather, weekday }) {
   if (!inMonth) return 'text-[#CAD5E2] hover:bg-canvas'
   if (isSelected) return 'bg-[#DBEAFE] ring-2 ring-[#155DFC] font-extrabold text-[#1447E6]'
   if (isToday) return 'bg-[#E0F2FE] font-bold text-[#0284C7]'
-  if (weather === 'STORM') return 'bg-[#FFFBEB] ring-1 ring-[#FDE68A] font-bold text-[#B45309]'
+  if (weather === 'STORM') return 'bg-[#FFFBEB] font-bold text-[#B45309]'
   if (weather === 'RAINY') return 'bg-[#FEF2F2] font-bold text-[#E7000B]'
-  if (weather === 'PAYDAY') return 'font-bold text-[#155DFC] hover:bg-canvas'
-  // 평일은 기본색, 주말은 일(빨강)/토(파랑)로 구분한다.
+  if (weather === 'PAYDAY') return 'bg-[#F0FDF4] font-bold text-[#16A34A] hover:bg-[#DCFCE7]'
+  if (weather === 'SUNNY') return 'font-medium text-[#314158] hover:bg-canvas'
+  // CLOUDY 및 기본
   if (weekday === 0) return 'font-medium text-[#FB2C36] hover:bg-canvas'
   if (weekday === 6) return 'font-medium text-[#155DFC] hover:bg-canvas'
   return 'font-medium text-[#314158] hover:bg-canvas'
@@ -27,9 +28,9 @@ function cellClass({ inMonth, isSelected, isToday, weather, weekday }) {
 
 // 주요 지점 미니카드의 톤별 색
 const MILESTONE_TONE = {
-  expense: { box: 'bg-[#FEF2F2] border-[#FFE2E2]', date: 'text-[#E7000B]', value: 'text-[#FB2C36]' },
-  warning: { box: 'bg-[#FFFBEB] border-[#FDE68A]', date: 'text-[#B45309]', value: 'text-[#B45309]' },
-  income: { box: 'bg-[#EFF6FF] border-[#DBEAFE]', date: 'text-[#1447E6]', value: 'text-[#155DFC]' },
+  expense: { box: 'bg-[#FEF2F2] border-[#FFE2E2]', date: 'text-[#E7000B]', value: 'text-[#FB2C36]', ring: 'ring-[#FB2C36]' },
+  warning: { box: 'bg-[#FFFBEB] border-[#FDE68A]', date: 'text-[#B45309]', value: 'text-[#B45309]', ring: 'ring-[#F59E0B]' },
+  income:  { box: 'bg-[#F0FDF4] border-[#BBF7D0]', date: 'text-[#16A34A]', value: 'text-[#16A34A]', ring: 'ring-[#22C55E]' },
 }
 
 // "2026-09-05" -> "9/5 (토)"
@@ -138,7 +139,7 @@ function CalendarCard({ view, days, selected, today, milestones, paydayInDays, s
         })}
       </div>
 
-      {/* 잔액 여유도 범례. 지출 집중·최저수위·입금은 아래 주요 지점 카드가 설명한다. */}
+      {/* 잔액 여유도 범례. 날씨 탭의 4단계(맑음/구름/비/폭풍)와 동일하게 표시한다. */}
       <div className="mt-[14px] flex flex-wrap items-center gap-[6px] border-t border-hairline pt-[12px]">
         {WEATHER_LEGEND.map((code) => (
           <span
@@ -163,7 +164,7 @@ function CalendarCard({ view, days, selected, today, milestones, paydayInDays, s
                 onClick={() => onSelect(item.date)}
                 aria-pressed={isSelected}
                 className={`rounded-[12px] border-[0.791px] px-[8px] py-[9px] text-center transition-shadow ${tone.box} ${
-                  isSelected ? 'ring-2 ring-[#155DFC]' : 'hover:shadow-[0_2px_8px_rgba(29,43,68,0.08)]'
+                  isSelected ? `ring-1 ${tone.ring}` : 'hover:shadow-[0_2px_8px_rgba(29,43,68,0.08)]'
                 }`}
               >
                 <p className={`text-[11px] font-bold leading-[14px] ${tone.date}`}>{dateWithWeekday(item.date)}</p>
