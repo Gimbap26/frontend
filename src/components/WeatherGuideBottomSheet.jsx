@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import styles from "../styles/WeatherGuideBottomSheet.module.css";
 import sunny from "../assets/weather_sunny.svg";
 import cloudy from "../assets/weather_cloudy.svg";
-import overcast from "../assets/weather_overcast.svg";
+import storm from "../assets/weather_storm.svg";
 import rainy from "../assets/weather_rainy.svg";
 import close from "../assets/close.svg";
 
@@ -19,7 +19,7 @@ const WEATHER_GUIDES = [
   },
   {
     statusCode: "CLOUDY",
-    status: "구름 조금",
+    status: "흐림",
     tone: "cloudy",
     icon: cloudy,
     description: "예정 지출을 확인하고 불필요한 소비를 줄여보세요.",
@@ -28,20 +28,20 @@ const WEATHER_GUIDES = [
     advice: "예정 지출을 확인하고 불필요한 소비를 줄여보세요.",
   },
   {
-    statusCode: "OVERCAST",
-    status: "흐림",
-    tone: "overcast",
-    icon: overcast,
+    statusCode: "RAINY",
+    status: "비",
+    tone: "rainy",
+    icon: rainy,
     description: "소비를 줄이거나 예정 지출 일정을 조정해 보세요.",
     condition: "예정 지출 이후 여유 자금이 부족",
     meaning: "소비 축소 또는 일정 조정 필요",
     advice: "소비를 줄이거나 예정 지출 일정을 조정해 보세요.",
   },
   {
-    statusCode: "RAINY",
-    status: "비",
-    tone: "rainy",
-    icon: rainy,
+    statusCode: "STORM",
+    status: "폭풍",
+    tone: "storm",
+    icon: storm,
     description: "즉시 지출 계획을 점검하고 조정하세요.",
     condition: "특정 날짜에 잔액 부족 가능성",
     meaning: "즉시 대응 필요",

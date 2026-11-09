@@ -237,26 +237,26 @@
   background: #f0f9ff;
 }
 
-.guideCard--overcast {
+.guideCard--rainy {
   color: #62748e;
 }
 
-.guideCard--overcast .guideCard__iconBox {
+.guideCard--rainy .guideCard__iconBox {
   background: #f8fafc;
 }
 
-.guideCard--rainy {
+.guideCard--storm {
   color: #e7000b;
 }
 
-.guideCard--rainy .guideCard__iconBox {
+.guideCard--storm .guideCard__iconBox {
   background: #fef2f2;
 }
 
 .guideCard--sunny .metaList__row:last-child .metaList__value,
 .guideCard--cloudy .metaList__row:last-child .metaList__value,
-.guideCard--overcast .metaList__row:last-child .metaList__value,
-.guideCard--rainy .metaList__row:last-child .metaList__value {
+.guideCard--rainy .metaList__row:last-child .metaList__value,
+.guideCard--storm .metaList__row:last-child .metaList__value {
   color: currentColor;
   font-weight: 700;
 }
