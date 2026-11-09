@@ -10,15 +10,9 @@
 }
 
 .gridLine {
-  stroke: #eaf0f8;
+  stroke: #d5deea;
   stroke-width: 1;
   stroke-dasharray: 4 6;
-}
-
-.thresholdLine {
-  stroke: #ffb900;
-  stroke-width: 2;
-  stroke-dasharray: 5 5;
 }
 
 .area {

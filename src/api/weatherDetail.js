@@ -2,6 +2,32 @@ import { fallbackMoneyWeatherData } from "../data/fallbackData";
 import { normalizeBaseData } from "./normalizers";
 import { monthRange, request, withFallback } from "./client";
 
+const buildTimeline = (forecastTimeline, monthStart, fallbackBalance) => {
+  const points = Array.isArray(forecastTimeline)
+    ? forecastTimeline.map((point) => ({
+        date: point.date,
+        balance: point.balance ?? point.expectedBalance ?? point.expectedAmount,
+        eventAmount: point.eventAmount ?? 0,
+      }))
+    : [];
+
+  if (points.length === 0) {
+    return [{ date: monthStart, balance: fallbackBalance }];
+  }
+
+  const [first] = points;
+  const timeline = points.map(({ date, balance }) => ({ date, balance }));
+
+  if (first.date === monthStart) {
+    return timeline;
+  }
+
+  return [
+    { date: monthStart, balance: first.balance - first.eventAmount },
+    ...timeline,
+  ];
+};
+
 export const getWeatherDetail = async () => {
   const range = monthRange();
 
@@ -39,21 +65,11 @@ export const getWeatherDetail = async () => {
           minimumBalance:
             forecast?.minimumExpectedBalance ??
             fallbackMoneyWeatherData.forecast.minimumBalance,
-          timeline:
-            forecast?.timeline?.length > 0
-              ? forecast.timeline.map((point) => ({
-                  date: point.date,
-                  balance:
-                    point.balance ?? point.expectedBalance ?? point.expectedAmount,
-                }))
-              : [
-                  {
-                    date: range.from,
-                    balance:
-                      dashboard?.currentBalance ??
-                      fallbackMoneyWeatherData.currentBalance,
-                  },
-                ],
+          timeline: buildTimeline(
+            forecast?.timeline,
+            range.from,
+            dashboard?.currentBalance ?? fallbackMoneyWeatherData.currentBalance,
+          ),
         },
       };
     },

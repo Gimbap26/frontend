@@ -134,13 +134,6 @@ export default function WeatherDetail() {
           <div className={styles.card__title}>잔액 변화 예측</div>
 
           <BalanceForecastChart timeline={data.forecast.timeline} />
-
-          <div className={styles.forecastCard__legend}>
-            <div className={styles.forecastCard__legendLine}></div>
-            <div className={styles.forecastCard__legendText}>
-              생활비 기준치 ₩1,500,000
-            </div>
-          </div>
         </section>
 
         {/* 날씨 판정 근거 */}

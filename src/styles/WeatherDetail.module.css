@@ -169,24 +169,6 @@
   font-weight: 700;
   line-height: 20px;}
 
-.forecastCard__legend {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.forecastCard__legendLine {
-  width: 16px;
-  height: 1.6px;
-  flex-shrink: 0;
-  border-top: 1.583px dashed #ffb900;
-}
-
-.forecastCard__legendText {
-  color: #90a1b9;
-  font-size: 12px;
-  line-height: 16px;}
-
 .basisCard {
   display: flex;
   gap: 18px;

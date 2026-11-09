@@ -20,6 +20,38 @@ const formatWon = (value) => `₩${value.toLocaleString()}`;
 
 const formatTick = (value) => `${Math.round(value / 10000)}만`;
 
+const TARGET_INTERVALS = 3;
+const MIN_STEP = 10000;
+
+const niceStep = (rough) => {
+  const power = 10 ** Math.floor(Math.log10(rough));
+  const fraction = rough / power;
+  const nice = fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10;
+  return nice * power;
+};
+
+const buildYScale = (balances) => {
+  let min = Math.min(...balances);
+  let max = Math.max(...balances);
+
+  if (min === max) {
+    const padding = Math.max(Math.abs(max) * 0.1, 100000);
+    min -= padding;
+    max += padding;
+  }
+
+  const step = Math.max(niceStep((max - min) / TARGET_INTERVALS), MIN_STEP);
+  const lower = Math.floor(min / step) * step;
+  const upper = Math.ceil(max / step) * step;
+  const ticks = [];
+
+  for (let value = lower; value <= upper; value += step) {
+    ticks.push(value);
+  }
+
+  return { lower, upper, ticks };
+};
+
 const pickVisibleTimeline = (timeline) => {
   if (timeline.length <= 7) {
     return timeline;
@@ -31,31 +63,34 @@ const pickVisibleTimeline = (timeline) => {
   });
 };
 
-const buildChartPoints = (timeline = fallbackTimeline) => {
+const toChartY = (value, scale) =>
+  CHART.bottom -
+  ((value - scale.lower) / (scale.upper - scale.lower)) *
+    (CHART.bottom - CHART.top);
+
+const buildChart = (timeline = fallbackTimeline) => {
   const sourceTimeline = timeline.length > 0 ? timeline : fallbackTimeline;
   const visibleTimeline = pickVisibleTimeline(sourceTimeline);
-  const balances = visibleTimeline.map((point) => point.balance);
-  const maxBalance = Math.max(...balances, 5000000);
-  const minBalance = Math.min(...balances, 0);
-  const balanceRange = Math.max(maxBalance - minBalance, 1);
+  const scale = buildYScale(visibleTimeline.map((point) => point.balance));
   const xRange = CHART.right - CHART.left;
-  const yRange = CHART.bottom - CHART.top;
 
-  return visibleTimeline.map((point, index) => {
-    const x =
+  const points = visibleTimeline.map((point, index) => ({
+    ...point,
+    date: formatChartDate(point.date),
+    x:
       visibleTimeline.length === 1
         ? CHART.left
-        : CHART.left + (xRange * index) / (visibleTimeline.length - 1);
-    const y =
-      CHART.bottom - ((point.balance - minBalance) / balanceRange) * yRange;
+        : CHART.left + (xRange * index) / (visibleTimeline.length - 1),
+    y: toChartY(point.balance, scale),
+  }));
 
-    return {
-      ...point,
-      date: formatChartDate(point.date),
-      x,
-      y,
-    };
-  });
+  const yTicks = scale.ticks.map((value) => ({
+    value,
+    label: formatTick(value),
+    y: toChartY(value, scale),
+  }));
+
+  return { points, yTicks };
 };
 
 const buildLinePath = (chartPoints) =>
@@ -65,17 +100,10 @@ const buildLinePath = (chartPoints) =>
 
 export default function BalanceForecastChart({ timeline = fallbackTimeline }) {
   const [activePoint, setActivePoint] = useState(null);
-  const chartPoints = buildChartPoints(timeline);
+  const { points: chartPoints, yTicks } = buildChart(timeline);
   const linePath = buildLinePath(chartPoints);
-  const areaPath = `${linePath} L${CHART.right} ${CHART.bottom} L${CHART.left} ${CHART.bottom} Z`;
-  const balances = timeline.map((point) => point.balance);
-  const maxBalance = Math.max(...balances, 5000000);
-  const yTicks = [
-    { label: formatTick(maxBalance), y: CHART.top },
-    { label: formatTick(maxBalance * 0.6), y: 70.4 },
-    { label: formatTick(maxBalance * 0.3), y: 114.2 },
-    { label: "0만", y: CHART.bottom },
-  ];
+  const lastPoint = chartPoints[chartPoints.length - 1];
+  const areaPath = `${linePath} L${lastPoint.x} ${CHART.bottom} L${CHART.left} ${CHART.bottom} Z`;
   const tooltipX = activePoint
     ? Math.min(Math.max(activePoint.x - 39, 44), 250)
     : 0;
@@ -97,7 +125,7 @@ export default function BalanceForecastChart({ timeline = fallbackTimeline }) {
         </defs>
 
         {yTicks.map((tick) => (
-          <g key={tick.label}>
+          <g key={tick.value}>
             <text className={styles.yLabel} x="36" y={tick.y + 4}>
               {tick.label}
             </text>
@@ -112,13 +140,6 @@ export default function BalanceForecastChart({ timeline = fallbackTimeline }) {
         ))}
 
         <path className={styles.area} d={areaPath} />
-        <line
-          className={styles.thresholdLine}
-          x1="48"
-          x2="318"
-          y1="114.2"
-          y2="114.2"
-        />
         <path className={styles.balanceLine} d={linePath} />
 
         {chartPoints.map((point) => (
