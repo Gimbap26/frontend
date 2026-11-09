@@ -9,6 +9,10 @@ export const fallbackMoneyWeatherData = {
   weatherDescription: "이번 달 자금 관리가 필요합니다.",
   dashboardRiskSummary:
     "9/25 월급 입금 전까지 잔액이 생활비 기준치를 하회할 수 있으니 추가 지출에 주의하세요.",
+  briefingMessages: [
+    "통장 잔액은 240만 원이지만, 9월 5일 카드 결제(52만 원) 등 필수 지출이 다가오고 있어 실제 하루 권장 지출은 45,500원입니다.",
+    "9월 15일 최저 잔고(18.2만 원) 구간 전까지 고액 소비를 미루면 날씨가 '맑음'으로 회복돼요.",
+  ],
   weatherStatuses: [
     {
       weather: "SUNNY",

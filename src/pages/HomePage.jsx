@@ -5,7 +5,9 @@ import styles from "../styles/HomePage.module.css";
 import arrow from "../assets/arrow.svg";
 import chat from "../assets/chat.svg";
 import aiSparkle from "../assets/ai_sparkle.svg";
-import chevronBlue from "../assets/chevron_blue.svg";
+import alertGood from "../assets/alert_good.svg";
+import alertCaution from "../assets/alert_caution.svg";
+import alertDanger from "../assets/alert_danger.svg";
 import sunny from "../assets/weather_sunny.svg";
 import cloudy from "../assets/weather_cloudy.svg";
 import storm from "../assets/weather_storm.svg";
@@ -23,6 +25,26 @@ const WEATHER_TONES = {
   CLOUDY: "cloudy",
   RAINY: "rainy",
   STORM: "storm",
+};
+
+// AI 브리핑 상단 배지. 날씨를 맑음 / 흐림·비 / 폭풍 세 단계로 묶어 보여준다.
+const GOOD_ALERT = { tone: "good", icon: alertGood, label: "자금 흐름 맑음" };
+const CAUTION_ALERT = {
+  tone: "caution",
+  icon: alertCaution,
+  label: "자금 저기압 주의보",
+};
+const DANGER_ALERT = {
+  tone: "danger",
+  icon: alertDanger,
+  label: "자금 폭풍 경보",
+};
+
+const BRIEFING_ALERTS = {
+  SUNNY: GOOD_ALERT,
+  CLOUDY: CAUTION_ALERT,
+  RAINY: CAUTION_ALERT,
+  STORM: DANGER_ALERT,
 };
 
 const formatWon = (value) => `₩${value.toLocaleString()}`;
@@ -44,6 +66,7 @@ export default function HomePage() {
   const weatherIcon = WEATHER_ICONS[data.weather] ?? cloudy;
   const weatherToneClass =
     styles[`weatherTone--${WEATHER_TONES[data.weather] ?? "cloudy"}`];
+  const briefingAlert = BRIEFING_ALERTS[data.weather] ?? BRIEFING_ALERTS.CLOUDY;
 
   return (
     <div className={styles.container}>
@@ -138,49 +161,30 @@ export default function HomePage() {
         </div>
 
         <article className={styles.briefing__card}>
-          <div className={styles.briefing__alert}>
-            <span className={styles.briefing__alertIcon}>⚠️</span>
-            <span className={styles.briefing__alertText}>자금 저기압 주의보</span>
+          <div
+            className={`${styles.briefing__alert} ${styles[`briefing__alert--${briefingAlert.tone}`]}`}
+          >
+            <img
+              className={styles.briefing__alertIcon}
+              src={briefingAlert.icon}
+              alt=""
+            />
+            <span className={styles.briefing__alertText}>
+              {briefingAlert.label}
+            </span>
           </div>
 
-          <p className={styles.briefing__message}>
-            통장 잔액은 <strong>240만 원</strong>이지만, 9월 5일 카드 결제(52만
-            원) 등 필수 지출이 다가오고 있어 실제 하루 권장 지출은{" "}
-            <strong className={styles.briefing__highlight}>45,500원</strong>
-            입니다.
-          </p>
-
-          <div className={styles.briefing__tip}>
-            <span className={styles.briefing__tipIcon}>💡</span>
-            <p className={styles.briefing__tipText}>
-              날씨 개선 팁:
-              <span className={styles.briefing__tipSub}>
-                {" "}
-                9월 15일 최저 잔고(18.2만 원) 구간 전까지 고액 소비를 미루면
-                날씨가{" "}
-              </span>
-              <strong className={styles.briefing__tipAccent}>'맑음'</strong>
-              <span className={styles.briefing__tipSub}>으로 회복돼요.</span>
+          {data.briefingMessages?.length > 0 ? (
+            data.briefingMessages.map((message, index) => (
+              <p className={styles.briefing__message} key={index}>
+                {message}
+              </p>
+            ))
+          ) : (
+            <p className={styles.briefing__message}>
+              지금은 추천할 행동이 없어요.
             </p>
-          </div>
-
-          <div className={styles.briefing__footer}>
-            <div className={styles.briefing__payday}>
-              급여일(9/25)까지 23일 남음
-            </div>
-
-            <button
-              className={styles.briefing__actionBtn}
-              onClick={() => navigate("/weather")}
-            >
-              권장 지출 관리하기
-              <img
-                className={styles.briefing__actionArrow}
-                src={chevronBlue}
-                alt=""
-              />
-            </button>
-          </div>
+          )}
         </article>
       </section>
 

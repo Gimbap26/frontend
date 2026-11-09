@@ -321,20 +321,35 @@
   align-items: center;
   gap: 6px;
   padding: 7px 11px;
-  border: 1px solid rgba(253, 230, 138, 0.6);
+  border: 1px solid transparent;
   border-radius: 8px;
-  background: #fffbeb;
-  color: #92400e;
   font-size: 13px;
   line-height: 18px;
 }
 
+.briefing__alert--good {
+  border-color: rgba(167, 243, 208, 0.6);
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.briefing__alert--caution {
+  border-color: rgba(253, 230, 138, 0.6);
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.briefing__alert--danger {
+  border-color: rgba(254, 202, 202, 0.6);
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
 .briefing__alertIcon {
-  position: relative;
-  top: -1px;
   display: block;
-  font-size: 12px;
-  line-height: 1;
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
 }
 
 .briefing__alertText {
