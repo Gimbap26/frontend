@@ -87,6 +87,13 @@ export const normalizeBaseData = ({
       dashboard?.riskSummary?.message,
       fallbackMoneyWeatherData.dashboardRiskSummary,
     ),
+    weatherReason: valueOrFallback(
+      dashboard?.weatherReason,
+      valueOrFallback(
+        dashboard?.riskSummary?.message,
+        fallbackMoneyWeatherData.weatherReason,
+      ),
+    ),
     nextEvents,
     monthlySchedule,
     weatherStatuses:

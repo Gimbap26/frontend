@@ -229,17 +229,15 @@
 }
 
 .basisCard__barFill--balance {
-  width: 48%;
+  width: 100%;
   background: #51a2ff;
 }
 
 .basisCard__barFill--expense {
-  width: 22%;
   background: #ff6467;
 }
 
 .basisCard__barFill--available {
-  width: 27%;
   background: #90a1b9;
 }
 
@@ -291,6 +289,14 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.scheduleEmpty {
+  padding: 28px 16px;
+  color: #90a1b9;
+  font-size: 13px;
+  line-height: 16px;
+  text-align: center;
 }
 
 .scheduleCard__item {

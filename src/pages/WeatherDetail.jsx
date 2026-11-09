@@ -30,6 +30,9 @@ const WEATHER_TONES = {
 
 const formatWon = (value) => `₩${value.toLocaleString()}`;
 
+const toBalanceRatio = (value, balance) =>
+  balance > 0 ? `${Math.min(Math.max((value / balance) * 100, 0), 100)}%` : "0%";
+
 export default function WeatherDetail() {
   const navigate = useNavigate();
   const [isGuideOpen, setIsGuideOpen] = useState(false);
@@ -165,6 +168,9 @@ export default function WeatherDetail() {
               <div className={styles.basisCard__bar}>
                 <div
                   className={`${styles.basisCard__barFill} ${styles["basisCard__barFill--expense"]}`}
+                  style={{
+                    width: toBalanceRatio(data.fixedOutflows, data.currentBalance),
+                  }}
                 ></div>
               </div>
 
@@ -181,6 +187,9 @@ export default function WeatherDetail() {
               <div className={styles.basisCard__bar}>
                 <div
                   className={`${styles.basisCard__barFill} ${styles["basisCard__barFill--available"]}`}
+                  style={{
+                    width: toBalanceRatio(data.availableFunds, data.currentBalance),
+                  }}
                 ></div>
               </div>
 
@@ -199,7 +208,7 @@ export default function WeatherDetail() {
               alt={data.weather === "SUNNY" ? "팁" : "경고"}
             />
             <div className={styles.basisCard__noticeText}>
-              {data.dashboardRiskSummary}
+              {data.weatherReason}
             </div>
           </div>
         </section>
@@ -209,7 +218,11 @@ export default function WeatherDetail() {
           <div className={styles.card__title}>이번 달 금융 일정</div>
 
           <div className={styles.scheduleCard__list}>
-            {data.monthlySchedule.map((item) => (
+            {data.monthlySchedule.length === 0 ? (
+              <div className={styles.scheduleEmpty}>
+                이번 달 금융 일정이 없어요
+              </div>
+            ) : data.monthlySchedule.map((item) => (
               <div className={styles.scheduleCard__item} key={item.id}>
                 <div className={styles.scheduleCard__info}>
                   <div
