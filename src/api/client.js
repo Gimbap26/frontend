@@ -1,31 +1,42 @@
-/*
- * HTTP 클라이언트 (백엔드 연결용 공통 래퍼).
- *
- * 현재는 목데이터 모드라 실제로 호출되지 않지만,
- * 백엔드가 붙으면 api 함수들이 이 request()를 사용하도록 바꾸면 된다.
- * API 주소는 .env 의 VITE_API_BASE_URL 로 설정한다.
- */
+import {
+  clearAccessToken,
+  ensureAuthenticated,
+} from './auth.js'
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
-
-// 개발용 사용자 컨텍스트. Bearer 토큰이 붙기 전까지 X-User-Id 헤더로 사용자를 지정한다.
-// (백엔드 인증 우선순위: Bearer > X-User-Id > userId query > 기본 사용자 1)
-const DEV_USER_ID = import.meta.env.VITE_DEV_USER_ID ?? ''
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 
 // 목데이터로 동작할지 여부. API 주소가 비어 있으면 목 모드로 본다.
 export const USE_MOCK = BASE_URL === ''
 
-// 공통 fetch 래퍼. JSON 응답을 파싱하고 에러를 표준화한다.
-export async function request(path, options = {}) {
-  const response = await fetch(`${BASE_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      // 개발용 사용자 헤더. 값이 있을 때만 붙인다.
-      ...(DEV_USER_ID ? { 'X-User-Id': DEV_USER_ID } : {}),
-      ...options.headers,
-    },
-    ...options,
+const buildUrl = (path, params = {}) => {
+  const url = new URL(`${BASE_URL}${path}`)
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      url.searchParams.set(key, value)
+    }
   })
+
+  return url
+}
+
+const sendRequest = async (path, options, token, canRetry) => {
+  const { params, headers, ...fetchOptions } = options
+  const response = await fetch(buildUrl(path, params), {
+    ...fetchOptions,
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...headers,
+    },
+  })
+
+  if (response.status === 401 && canRetry) {
+    clearAccessToken(token)
+    const refreshedToken = await ensureAuthenticated({ force: true })
+    return sendRequest(path, options, refreshedToken, false)
+  }
 
   if (!response.ok) {
     throw new Error(`요청 실패 (${response.status}) ${path}`)
@@ -34,6 +45,12 @@ export async function request(path, options = {}) {
   // 204 No Content 등 본문이 없는 경우 대비
   const text = await response.text()
   return text ? JSON.parse(text) : null
+}
+
+// 인증이 필요한 JSON API를 호출하고, 만료된 토큰은 한 번 재발급한다.
+export async function request(path, options = {}) {
+  const token = await ensureAuthenticated()
+  return sendRequest(path, options, token, true)
 }
 
 // 목데이터를 실제 API 호출처럼 Promise 로 감싸는 헬퍼.
@@ -64,12 +81,19 @@ export async function withFallback(apiCall, fallbackData) {
   }
 }
 
+// 현재 날짜의 연-월을 "YYYY-MM" 형식으로 돌려준다.
+const currentMonth = () => {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+}
+
 /*
- * 조회 기준월. 백엔드 시드/시연 데이터가 2026-09 기준이라 그 달을 본다.
- * 실서비스 전환 시 현재 월(new Date()) 기준으로 바꾸면 된다.
- * VITE_BASE_MONTH 로 재정의할 수 있다. (형식: "YYYY-MM")
+ * 조회 기준월. 기본은 현재 월이다.
+ * VITE_BASE_MONTH 로 특정 월을 지정할 수 있다. (형식: "YYYY-MM", 예: 시연 데이터 "2026-09")
+ * 값이 없거나 비어 있으면 현재 월을 사용한다.
  */
-export const BASE_MONTH = import.meta.env.VITE_BASE_MONTH ?? '2026-09'
+const ENV_BASE_MONTH = (import.meta.env.VITE_BASE_MONTH ?? '').trim()
+export const BASE_MONTH = ENV_BASE_MONTH || currentMonth()
 
 // 기준월의 시작일/종료일을 ISO 문자열로 돌려준다.
 //  "2026-09" -> { from: "2026-09-01", to: "2026-09-30" }
