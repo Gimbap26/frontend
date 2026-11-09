@@ -68,7 +68,7 @@ export function fetchRiskSummary() {
   return withFallback(
     () =>
       request(`/dashboard?baseDate=${from}&targetDate=${to}`).then(
-        (data) => data?.riskSummary ?? fallbackMoneyWeatherData.dashboardRiskSummary,
+        (data) => data?.riskSummary?.message ?? fallbackMoneyWeatherData.dashboardRiskSummary,
       ),
     fallbackMoneyWeatherData.dashboardRiskSummary,
   )

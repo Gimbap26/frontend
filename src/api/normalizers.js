@@ -1,22 +1,5 @@
 import { fallbackMoneyWeatherData } from "../data/fallbackData";
 
-const formatDate = (date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
-export const toMonthRange = (date = new Date()) => {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-
-  return {
-    from: formatDate(new Date(year, month, 1)),
-    to: formatDate(new Date(year, month + 1, 0)),
-  };
-};
-
 const formatMonthLabel = (dateString) => {
   if (!dateString) {
     return fallbackMoneyWeatherData.baseMonthLabel;
@@ -51,7 +34,7 @@ const normalizeEvent = (event) => {
 };
 
 const findWeatherStatus = (statuses, weather) =>
-  statuses?.find((item) => item.status === weather);
+  statuses?.find((item) => item.weather === weather);
 
 const valueOrFallback = (value, fallback) =>
   typeof value === "string" && value.trim() === "" ? fallback : value ?? fallback;
@@ -61,17 +44,26 @@ export const normalizeBaseData = ({
   events,
   weatherStatuses,
   baseDate,
+  useScheduleForNextEvents = false,
 }) => {
   const weather = dashboard?.weather ?? fallbackMoneyWeatherData.weather;
   const weatherStatus =
     findWeatherStatus(weatherStatuses?.statuses, weather) ??
     findWeatherStatus(fallbackMoneyWeatherData.weatherStatuses, weather);
-  const monthlySchedule =
-    events?.events?.map(normalizeEvent) ?? fallbackMoneyWeatherData.monthlySchedule;
-  const nextEvents =
-    dashboard?.nextEvents?.length > 0
+  const monthlySchedule = Array.isArray(events?.events)
+    ? events.events
+        .filter((event) => event.status !== "CANCELED")
+        .sort((a, b) => a.eventDate.localeCompare(b.eventDate))
+        .map(normalizeEvent)
+    : [];
+  const scheduleExpenses = monthlySchedule
+    .filter((event) => event.type === "expense")
+    .slice(0, 3);
+  const nextEvents = useScheduleForNextEvents
+    ? scheduleExpenses
+    : Array.isArray(dashboard?.nextEvents)
       ? dashboard.nextEvents.map(normalizeEvent)
-      : monthlySchedule.filter((event) => event.type === "expense").slice(0, 3);
+      : scheduleExpenses;
 
   return {
     source: "api",
@@ -81,7 +73,7 @@ export const normalizeBaseData = ({
     fixedOutflows:
       dashboard?.fixedOutflows ?? fallbackMoneyWeatherData.fixedOutflows,
     availableFunds:
-      dashboard?.availableFunds ?? fallbackMoneyWeatherData.availableFunds,
+      dashboard?.availableAmount ?? fallbackMoneyWeatherData.availableFunds,
     weather,
     weatherLabel: valueOrFallback(
       weatherStatus?.label,
@@ -91,12 +83,8 @@ export const normalizeBaseData = ({
       weatherStatus?.description,
       fallbackMoneyWeatherData.weatherDescription,
     ),
-    weatherGuide: valueOrFallback(
-      weatherStatus?.guide,
-      fallbackMoneyWeatherData.weatherGuide,
-    ),
     dashboardRiskSummary: valueOrFallback(
-      dashboard?.riskSummary,
+      dashboard?.riskSummary?.message,
       fallbackMoneyWeatherData.dashboardRiskSummary,
     ),
     nextEvents,

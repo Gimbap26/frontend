@@ -4,36 +4,31 @@ export const fallbackMoneyWeatherData = {
   currentBalance: 2400000,
   fixedOutflows: 1034000,
   availableFunds: 1366000,
-  weather: "OVERCAST",
-  weatherLabel: "흐림",
-  weatherDescription: "이번 달 자금 관리가 필요합니다",
-  weatherGuide: "소비를 줄이거나 예정 지출 일정을 조정해 보세요.",
+  weather: "RAINY",
+  weatherLabel: "비",
+  weatherDescription: "이번 달 자금 관리가 필요합니다.",
   dashboardRiskSummary:
     "9/25 월급 입금 전까지 잔액이 생활비 기준치를 하회할 수 있으니 추가 지출에 주의하세요.",
   weatherStatuses: [
     {
-      status: "SUNNY",
+      weather: "SUNNY",
       label: "맑음",
       description: "이번 달 자금 흐름이 안정적입니다.",
-      guide: "여유 자금으로 저축이나 투자를 고려해 보세요.",
     },
     {
-      status: "CLOUDY",
-      label: "구름 조금",
-      description: "예정 지출을 확인할 필요가 있습니다.",
-      guide: "불필요한 소비를 줄이고 남은 일정을 점검해 보세요.",
-    },
-    {
-      status: "OVERCAST",
+      weather: "CLOUDY",
       label: "흐림",
-      description: "이번 달 자금 관리가 필요합니다.",
-      guide: "소비를 줄이거나 예정 지출 일정을 조정해 보세요.",
+      description: "예정 지출을 확인할 필요가 있습니다.",
     },
     {
-      status: "RAINY",
+      weather: "RAINY",
       label: "비",
+      description: "이번 달 자금 관리가 필요합니다.",
+    },
+    {
+      weather: "STORM",
+      label: "폭풍",
       description: "잔액 부족 가능성이 있습니다.",
-      guide: "즉시 지출 계획을 점검하고 조정하세요.",
     },
   ],
   nextEvents: [
