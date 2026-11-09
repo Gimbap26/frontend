@@ -2,28 +2,30 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BalanceForecastChart from "../components/BalanceForecastChart";
 import WeatherGuideBottomSheet from "../components/WeatherGuideBottomSheet";
+import AsyncBoundary from "../components/AsyncBoundary";
 import { useWeatherDetailMoneyWeather } from "../hooks/useWeatherDetail";
 import styles from "../styles/WeatherDetail.module.css";
 import arrow from "../assets/arrow2.svg";
 import info from "../assets/info.svg";
 import alert from "../assets/alert.svg";
+import bulb from "../assets/bulb.svg";
 import sunny from "../assets/weather_sunny.svg";
 import cloudy from "../assets/weather_cloudy.svg";
-import overcast from "../assets/weather_overcast.svg";
+import storm from "../assets/weather_storm.svg";
 import rainy from "../assets/weather_rainy.svg";
 
 const WEATHER_ICONS = {
   SUNNY: sunny,
   CLOUDY: cloudy,
-  OVERCAST: overcast,
   RAINY: rainy,
+  STORM: storm,
 };
 
 const WEATHER_TONES = {
   SUNNY: "sunny",
   CLOUDY: "cloudy",
-  OVERCAST: "overcast",
   RAINY: "rainy",
+  STORM: "storm",
 };
 
 const formatWon = (value) => `₩${value.toLocaleString()}`;
@@ -31,10 +33,21 @@ const formatWon = (value) => `₩${value.toLocaleString()}`;
 export default function WeatherDetail() {
   const navigate = useNavigate();
   const [isGuideOpen, setIsGuideOpen] = useState(false);
-  const { data } = useWeatherDetailMoneyWeather();
-  const weatherIcon = WEATHER_ICONS[data.weather] ?? overcast;
+  const { data, loading, error } = useWeatherDetailMoneyWeather();
+
+  if (loading || error || !data) {
+    return (
+      <div className={styles.container}>
+        <AsyncBoundary loading={loading || (!data && !error)} error={error}>
+          {null}
+        </AsyncBoundary>
+      </div>
+    );
+  }
+
+  const weatherIcon = WEATHER_ICONS[data.weather] ?? cloudy;
   const weatherToneClass =
-    styles[`weatherTone--${WEATHER_TONES[data.weather] ?? "overcast"}`];
+    styles[`weatherTone--${WEATHER_TONES[data.weather] ?? "cloudy"}`];
 
   return (
     <>
@@ -80,7 +93,7 @@ export default function WeatherDetail() {
             </div>
 
             <div className={`${styles.weatherCard__description} ${weatherToneClass}`}>
-              {data.weatherGuide}
+              {data.weatherDescription}
             </div>
           </div>
         </section>
@@ -180,7 +193,11 @@ export default function WeatherDetail() {
           </div>
 
           <div className={styles.basisCard__notice}>
-            <img className={styles.basisCard__noticeIcon} src={alert} alt="경고" />
+            <img
+              className={styles.basisCard__noticeIcon}
+              src={data.weather === "SUNNY" ? bulb : alert}
+              alt={data.weather === "SUNNY" ? "팁" : "경고"}
+            />
             <div className={styles.basisCard__noticeText}>
               {data.dashboardRiskSummary}
             </div>
