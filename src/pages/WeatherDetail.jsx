@@ -51,6 +51,7 @@ export default function WeatherDetail() {
   const weatherIcon = WEATHER_ICONS[data.weather] ?? cloudy;
   const weatherToneClass =
     styles[`weatherTone--${WEATHER_TONES[data.weather] ?? "cloudy"}`];
+  const isTipWeather = data.weather === "SUNNY" || data.weather === "CLOUDY";
 
   return (
     <>
@@ -197,8 +198,8 @@ export default function WeatherDetail() {
           <div className={styles.basisCard__notice}>
             <img
               className={styles.basisCard__noticeIcon}
-              src={data.weather === "SUNNY" ? bulb : alert}
-              alt={data.weather === "SUNNY" ? "팁" : "경고"}
+              src={isTipWeather ? bulb : alert}
+              alt={isTipWeather ? "팁" : "경고"}
             />
             <div className={styles.basisCard__noticeText}>
               {data.weatherReason}
